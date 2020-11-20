@@ -108,6 +108,10 @@ def toy_map_problem_experiments():
     #       solve the same `toy_map_problem` with it and print the results (as before).
     # Notice: AStar constructor receives the heuristic *type* (ex: `MyHeuristicClass`),
     #         and NOT an instance of the heuristic (eg: not `MyHeuristicClass()`).
+    a_star = AStar(NullHeuristic)
+    res = a_star.solve_problem(toy_map_problem)
+    print(res)
+
     exit()  # TODO: remove!
 
     # Ex.13

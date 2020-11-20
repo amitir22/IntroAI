@@ -69,7 +69,8 @@ class MapProblem(GraphProblem):
         for out_link in junction.outgoing_links:
             yield OperatorResult(successor_state=MapState(out_link.target), operator_cost=out_link.distance)
 
-        # yield OperatorResult(successor_state=MapState(self.target_junction_id), operator_cost=7)  # TODO: remove this line!
+        # TODO: remove this line!
+        # yield OperatorResult(successor_state=MapState(self.target_junction_id), operator_cost=7)
 
     def is_goal(self, state: GraphProblemState) -> bool:
         """
