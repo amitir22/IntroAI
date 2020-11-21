@@ -56,9 +56,6 @@ class AStar(BestFirstSearch):
 
         return (1 - w) * g_v + w * h(v)
 
-        # TODO: remove this line!
-        # raise NotImplementedError
-
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
         """
         Called by solve_problem() in the implementation of `BestFirstSearch`
@@ -79,14 +76,21 @@ class AStar(BestFirstSearch):
                   but still could be improved.
         """
         if self.close.has_state(successor_node.state):
+            prev_close_node_of_state = self.close.get_node_by_state(successor_node.state)
+            succ_g_cost = successor_node.g_cost
+            prev_g_cost = prev_close_node_of_state.g_cost
+            should_swap = prev_g_cost > succ_g_cost
+
+            if should_swap:
+                self.close.remove_node(prev_close_node_of_state)
+                self.open.push_node(successor_node)
             return
 
         if self.open.has_state(successor_node.state):
             already_found_node_with_same_state = self.open.get_node_by_state(successor_node.state)
+
             if already_found_node_with_same_state.expanding_priority > successor_node.expanding_priority:
                 self.open.extract_node(already_found_node_with_same_state)
 
         if not self.open.has_state(successor_node.state):
             self.open.push_node(successor_node)
-
-        raise NotImplementedError  # TODO: remove this line!
