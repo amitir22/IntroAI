@@ -8,7 +8,6 @@ from .map_heuristics import AirDistHeuristic
 from .cached_map_distance_finder import CachedMapDistanceFinder
 from .mda_problem_input import *
 
-
 __all__ = ['MDAState', 'MDACost', 'MDAProblem', 'MDAOptimizationObjective']
 
 
@@ -79,7 +78,11 @@ class MDAState(GraphProblemState):
         #   (using equals `==` operator) because the class `Junction` explicitly
         #   implements the `__eq__()` method. The types `frozenset`, `ApartmentWithSymptomsReport`, `Laboratory`
         #   are also comparable (in the same manner).
-        raise NotImplementedError  # TODO: remove this line.
+        return other.tests_transferred_to_lab == self.tests_transferred_to_lab and \
+               other.current_site == self.current_site and \
+               other.tests_on_ambulance == self.tests_on_ambulance and \
+               other.nr_matoshim_on_ambulance == self.nr_matoshim_on_ambulance and \
+               other.visited_labs == self.visited_labs
 
     def __hash__(self):
         """
@@ -255,7 +258,8 @@ class MDAProblem(GraphProblem):
          In order to create a set from some other collection (list/tuple) you can just `set(some_other_collection)`.
         """
         assert isinstance(state, MDAState)
-        raise NotImplementedError  # TODO: remove the line!
+        # todo: check. maybe check if ambulance is empty
+        return len(self.get_reported_apartments_waiting_to_visit(state)) == 0
 
     def get_zero_cost(self) -> Cost:
         """
