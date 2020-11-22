@@ -133,8 +133,6 @@ def toy_map_problem_experiments():
     res = w_A_star.solve_problem(toy_map_problem)
     print(res)
 
-    ###########################################################################################
-
     # Ex.15
     # TODO:
     #  1. Complete the implementation of the function
@@ -145,7 +143,6 @@ def toy_map_problem_experiments():
     #  3. Call here the function `run_astar_for_weights_in_range()`
     #     with `AirDistHeuristic` and `toy_map_problem`.
     run_astar_for_weights_in_range(AirDistHeuristic, toy_map_problem)
-    exit()  # TODO: remove!
 
 
 # --------------------------------------------------------------------
