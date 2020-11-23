@@ -302,11 +302,12 @@ class MDAProblem(GraphProblem):
         if did_fail_to_calc_distance:
             return MDACost(float('inf'), float('inf'), float('inf'), self.optimization_objective)
 
-        total_tests_in_fridges = sum(d.nr_roommates for d in succ_state.tests_on_ambulance)
-
+        # calc ambulance gas cost
         gas_price = self.problem_input.gas_liter_price
         drive_gas_consumption_per_meter = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter
 
+        # calc fridges cost
+        total_tests_in_fridges = sum(d.nr_roommates for d in succ_state.tests_on_ambulance)
         fridge_capacity = self.problem_input.ambulance.fridge_capacity
         active_fridges = math.ceil(total_tests_in_fridges / fridge_capacity)
         fridges_gas_consumption_per_meter = self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter
@@ -314,6 +315,7 @@ class MDAProblem(GraphProblem):
 
         drive_cost = gas_price * (drive_gas_consumption_per_meter + fridges_gas_consumption) * distance
 
+        # calc lab visit cost
         lab_visit_cost = 0.0
 
         if isinstance(succ_state.current_site, Laboratory):
@@ -383,4 +385,9 @@ class MDAProblem(GraphProblem):
             Use the method `self.get_reported_apartments_waiting_to_visit(state)`.
             Use python's `sorted(some_list, key=...)` function.
         """
-        raise NotImplementedError  # TODO: remove this line!
+        remaining_reported_apartments = self.get_reported_apartments_waiting_to_visit(state)
+        current_apartment = [state.current_site]
+        apartments = [apartment.location for apartment in remaining_reported_apartments] + current_apartment
+        sorted_apartments = sorted(apartments, key=lambda apartment: apartment.index)
+
+        return sorted_apartments

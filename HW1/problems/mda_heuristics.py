@@ -49,7 +49,12 @@ class MDAMaxAirDistHeuristic(HeuristicFunction):
         if len(all_certain_junctions_in_remaining_ambulance_path) < 2:
             return 0
 
-        return 10  # TODO: modify this line.
+        total_distance_lower_bound = max(self.cached_air_distance_calculator.get_air_distance_between_junctions(j1, j2)
+                                         for j1 in all_certain_junctions_in_remaining_ambulance_path
+                                         for j2 in all_certain_junctions_in_remaining_ambulance_path
+                                         if not j1 == j2)
+
+        return total_distance_lower_bound
 
 
 class MDASumAirDistHeuristic(HeuristicFunction):
@@ -92,7 +97,31 @@ class MDASumAirDistHeuristic(HeuristicFunction):
         if len(all_certain_junctions_in_remaining_ambulance_path) < 2:
             return 0
 
-        raise NotImplementedError  # TODO: remove this line and complete the missing part here!
+        air_distance_function = self.cached_air_distance_calculator.get_air_distance_between_junctions
+
+        all_remaining_junctions = all_certain_junctions_in_remaining_ambulance_path
+
+        current_junction = state.current_site
+        sum_air_dist_cost = 0.0
+
+        while len(all_remaining_junctions) > 0:
+            current_min_air_dist_cost = float('inf')
+            candidate_next_junction = all_remaining_junctions[-1]  # todo: double check
+
+            for next_junction in all_remaining_junctions:
+                current_air_distance = air_distance_function(current_junction, next_junction)
+
+                if (current_air_distance, next_junction.index) < \
+                        (current_min_air_dist_cost, candidate_next_junction.index):
+                    current_min_air_dist_cost = current_air_distance
+                    candidate_next_junction = next_junction
+
+            sum_air_dist_cost += current_min_air_dist_cost
+            current_junction = candidate_next_junction
+
+            all_remaining_junctions.remove(current_junction)
+
+        return sum_air_dist_cost
 
 
 class MDAMSTAirDistHeuristic(HeuristicFunction):

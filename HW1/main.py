@@ -183,8 +183,6 @@ def basic_mda_problem_experiments():
     res = uc.solve_problem(small_mda_problem_with_distance_cost)
     print(res)
 
-    exit()  # TODO: remove!
-
 
 def mda_problem_with_astar_experiments():
     print()
@@ -196,11 +194,20 @@ def mda_problem_with_astar_experiments():
     # Ex.22
     # TODO: create an instance of `AStar` with the `MDAMaxAirDistHeuristic`,
     #       solve the `moderate_mda_problem_with_distance_cost` with it and print the results.
-    exit()  # TODO: remove!
+    # TODO: uncomment:
+    # a_star = AStar(MDAMaxAirDistHeuristic)
+    # res = a_star.solve_problem(moderate_mda_problem_with_distance_cost)
+    #
+    # print(res)
 
     # Ex.25
     # TODO: create an instance of `AStar` with the `MDASumAirDistHeuristic`,
     #       solve the `moderate_mda_problem_with_distance_cost` with it and print the results.
+    a_star = AStar(MDASumAirDistHeuristic)
+    res = a_star.solve_problem(moderate_mda_problem_with_distance_cost)
+
+    print(res)
+
     exit()  # TODO: remove!
 
     # Ex.28
@@ -323,7 +330,7 @@ def run_all_experiments():
     print('Running all experiments')
     # TODO: remove all '#'s
     # toy_map_problem_experiments()
-    basic_mda_problem_experiments()
+    # basic_mda_problem_experiments()
     mda_problem_with_astar_experiments()
     mda_problem_with_weighted_astar_experiments()
     monetary_cost_objectives_mda_problem_experiments()
