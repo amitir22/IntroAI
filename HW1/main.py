@@ -179,6 +179,10 @@ def basic_mda_problem_experiments():
     # Ex.18
     # TODO: create an instance of `UniformCost`, solve the `small_mda_problem_with_distance_cost`
     #       with it and print the results.
+    uc = UniformCost()
+    res = uc.solve_problem(small_mda_problem_with_distance_cost)
+    print(res)
+
     exit()  # TODO: remove!
 
 
@@ -317,7 +321,8 @@ def mda_problem_anytime_astar_experiments():
 
 def run_all_experiments():
     print('Running all experiments')
-    toy_map_problem_experiments()
+    # TODO: remove all '#'s
+    # toy_map_problem_experiments()
     basic_mda_problem_experiments()
     mda_problem_with_astar_experiments()
     mda_problem_with_weighted_astar_experiments()
