@@ -220,7 +220,7 @@ class MDAProblem(GraphProblem):
         unvisited_reported_apartments = self.get_reported_apartments_waiting_to_visit(state_to_expand)
 
         for apartment in unvisited_reported_apartments:
-            total_tests_in_fridges = sum(d.nr_roommates for d in state_to_expand.tests_on_ambulance)
+            total_tests_in_fridges = state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()
             total_fridges_capacity = self.problem_input.ambulance.total_fridges_capacity
 
             is_there_enough_matoshim = apartment.nr_roommates <= state_to_expand.nr_matoshim_on_ambulance
@@ -241,7 +241,7 @@ class MDAProblem(GraphProblem):
 
         # second we try to visit all remaining labs
         for lab in self.problem_input.laboratories:
-            is_there_tests_in_fridges = len(state_to_expand.tests_on_ambulance) == 0
+            is_there_tests_in_fridges = len(state_to_expand.tests_on_ambulance) > 0
             can_take_matoshim_from_lab = lab not in state_to_expand.visited_labs
             never_visited = can_take_matoshim_from_lab
 
