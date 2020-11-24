@@ -220,6 +220,8 @@ class MDAProblem(GraphProblem):
         unvisited_reported_apartments = self.get_reported_apartments_waiting_to_visit(state_to_expand)
 
         for apartment in unvisited_reported_apartments:
+            assert isinstance(apartment, ApartmentWithSymptomsReport)
+
             total_tests_in_fridges = state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()
             total_fridges_capacity = self.problem_input.ambulance.total_fridges_capacity
 
@@ -230,7 +232,7 @@ class MDAProblem(GraphProblem):
 
             if can_visit:
                 op_name = f'visit {apartment.reporter_name}'
-                succ_state = MDAState(apartment.location,
+                succ_state = MDAState(apartment,
                                       frozenset([apartment]).union(state_to_expand.tests_on_ambulance),
                                       state_to_expand.tests_transferred_to_lab,
                                       state_to_expand.nr_matoshim_on_ambulance - apartment.nr_roommates,
@@ -242,6 +244,7 @@ class MDAProblem(GraphProblem):
         # second we try to visit all remaining labs
         for lab in self.problem_input.laboratories:
             assert isinstance(lab, Laboratory)
+
             is_there_tests_in_fridges = len(state_to_expand.tests_on_ambulance) > 0
             can_take_matoshim_from_lab = lab not in state_to_expand.visited_labs
             never_visited = can_take_matoshim_from_lab
@@ -259,7 +262,7 @@ class MDAProblem(GraphProblem):
 
                 # todo: if we don't HAVE TO transfer the tests in the lab when we visit then reconsider:
                 op_name = f'go to lab {lab.name}'
-                succ_state = MDAState(lab.location, frozenset(), tests_transferred_to_lab.union(tests_on_ambulance),
+                succ_state = MDAState(lab, frozenset(), tests_transferred_to_lab.union(tests_on_ambulance),
                                       new_nr_matoshim, state_to_expand.visited_labs.union([lab]))
                 op_cost = self.get_operator_cost(state_to_expand, succ_state)
 
@@ -296,7 +299,7 @@ class MDAProblem(GraphProblem):
             You might find this tip useful for summing a slice of a collection.
         """
         get_map_cost_between = self.map_distance_finder.get_map_cost_between
-        distance_cost = get_map_cost_between(prev_state.current_site, succ_state.current_site)
+        distance_cost = get_map_cost_between(prev_state.current_location, succ_state.current_location)
         distance = distance_cost
         did_fail_to_calc_distance = distance_cost is None
 
@@ -312,7 +315,7 @@ class MDAProblem(GraphProblem):
         fridge_capacity = self.problem_input.ambulance.fridge_capacity
         active_fridges = math.ceil(total_tests_in_fridges / fridge_capacity)
         fridges_gas_consumption_per_meter = self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter
-        fridges_gas_consumption = sum(fridges_gas_consumption_per_meter[:active_fridges])
+        fridges_gas_consumption = sum(fridges_gas_consumption_per_meter[:active_fridges - 1])
 
         drive_cost = gas_price * (drive_gas_consumption_per_meter + fridges_gas_consumption) * distance
 
@@ -343,9 +346,8 @@ class MDAProblem(GraphProblem):
          In order to create a set from some other collection (list/tuple) you can just `set(some_other_collection)`.
         """
         assert isinstance(state, MDAState)
+        # TODO: add: ` and isinstance(state.location, Laboratory)`
         return set(self.problem_input.reported_apartments) == state.tests_transferred_to_lab
-        # TODO: remove:
-        # return len(self.get_reported_apartments_waiting_to_visit(state)) == 0
 
     def get_zero_cost(self) -> Cost:
         """
@@ -387,7 +389,7 @@ class MDAProblem(GraphProblem):
             Use python's `sorted(some_list, key=...)` function.
         """
         remaining_reported_apartments = self.get_reported_apartments_waiting_to_visit(state)
-        current_apartment = [state.current_site]
+        current_apartment = [state.current_location]
         apartments = [apartment.location for apartment in remaining_reported_apartments] + current_apartment
         sorted_apartments = sorted(apartments, key=lambda apartment: apartment.index)
 

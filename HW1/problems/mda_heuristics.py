@@ -101,7 +101,7 @@ class MDASumAirDistHeuristic(HeuristicFunction):
 
         all_remaining_junctions = all_certain_junctions_in_remaining_ambulance_path
 
-        current_junction = state.current_site
+        current_junction = state.current_location
         sum_air_dist_cost = 0.0
 
         while len(all_remaining_junctions) > 1:
