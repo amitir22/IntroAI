@@ -104,22 +104,24 @@ class MDASumAirDistHeuristic(HeuristicFunction):
         current_junction = state.current_site
         sum_air_dist_cost = 0.0
 
-        while len(all_remaining_junctions) > 0:
-            current_min_air_dist_cost = float('inf')
-            candidate_next_junction = all_remaining_junctions[-1]  # todo: double check
+        min_path = [(sum_air_dist_cost, current_junction)]
 
-            for next_junction in all_remaining_junctions:
-                current_air_distance = air_distance_function(current_junction, next_junction)
-
-                if (current_air_distance, next_junction.index) < \
-                        (current_min_air_dist_cost, candidate_next_junction.index):
-                    current_min_air_dist_cost = current_air_distance
-                    candidate_next_junction = next_junction
-
-            sum_air_dist_cost += current_min_air_dist_cost
-            current_junction = candidate_next_junction
-
+        while len(all_remaining_junctions) > 1:
             all_remaining_junctions.remove(current_junction)
+            current_minimum_distance = float('inf')
+            current_next_junction = all_remaining_junctions[0]
+
+            for candidate_next_junction in all_remaining_junctions:
+                candidate_distance = air_distance_function(current_junction, candidate_next_junction)
+
+                if (candidate_distance, candidate_next_junction.index) < \
+                   (current_minimum_distance, current_next_junction.index):
+                    current_minimum_distance = candidate_distance
+                    current_next_junction = candidate_next_junction
+
+            sum_air_dist_cost += current_minimum_distance
+            current_junction = current_next_junction
+            min_path.append((sum_air_dist_cost, current_junction))
 
         return sum_air_dist_cost
 

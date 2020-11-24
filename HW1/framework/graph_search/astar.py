@@ -77,9 +77,10 @@ class AStar(BestFirstSearch):
         """
         if self.close.has_state(successor_node.state):
             prev_close_node_of_state = self.close.get_node_by_state(successor_node.state)
-            succ_g_cost = successor_node.g_cost
-            prev_g_cost = prev_close_node_of_state.g_cost
-            should_swap = prev_g_cost > succ_g_cost
+
+            succ_cost = successor_node.expanding_priority
+            prev_cost = prev_close_node_of_state.expanding_priority
+            should_swap = succ_cost < prev_cost
 
             if should_swap:
                 self.close.remove_node(prev_close_node_of_state)
