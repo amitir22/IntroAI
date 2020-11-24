@@ -241,6 +241,7 @@ class MDAProblem(GraphProblem):
 
         # second we try to visit all remaining labs
         for lab in self.problem_input.laboratories:
+            assert isinstance(lab, Laboratory)
             is_there_tests_in_fridges = len(state_to_expand.tests_on_ambulance) > 0
             can_take_matoshim_from_lab = lab not in state_to_expand.visited_labs
             never_visited = can_take_matoshim_from_lab
@@ -321,7 +322,7 @@ class MDAProblem(GraphProblem):
         if isinstance(succ_state.current_site, Laboratory):
             current_lab = succ_state.current_site
 
-            if len(prev_state.tests_on_ambulance) != 0:
+            if len(prev_state.tests_on_ambulance) > 0:
                 lab_visit_cost += current_lab.tests_transfer_cost
             if succ_state.current_site in prev_state.visited_labs:
                 lab_visit_cost += current_lab.revisit_extra_cost
