@@ -299,6 +299,8 @@ class MDAProblem(GraphProblem):
             You might find this tip useful for summing a slice of a collection.
         """
         get_map_cost_between = self.map_distance_finder.get_map_cost_between
+
+        # calc distance (cost)
         distance_cost = get_map_cost_between(prev_state.current_location, succ_state.current_location)
         distance = distance_cost
         did_fail_to_calc_distance = distance_cost is None
@@ -311,12 +313,13 @@ class MDAProblem(GraphProblem):
         drive_gas_consumption_per_meter = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter
 
         # calc fridges cost
-        total_tests_in_fridges = sum(d.nr_roommates for d in succ_state.tests_on_ambulance)
+        total_tests_in_fridges = sum(d.nr_roommates for d in prev_state.tests_on_ambulance)
         fridge_capacity = self.problem_input.ambulance.fridge_capacity
         active_fridges = math.ceil(total_tests_in_fridges / fridge_capacity)
         fridges_gas_consumption_per_meter = self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter
-        fridges_gas_consumption = sum(fridges_gas_consumption_per_meter[:active_fridges - 1])
+        fridges_gas_consumption = sum(fridges_gas_consumption_per_meter[:active_fridges])
 
+        # calc drive total gas cost
         drive_cost = gas_price * (drive_gas_consumption_per_meter + fridges_gas_consumption) * distance
 
         # calc lab visit cost
@@ -327,8 +330,9 @@ class MDAProblem(GraphProblem):
 
             if len(prev_state.tests_on_ambulance) > 0:
                 lab_visit_cost += current_lab.tests_transfer_cost
-            if succ_state.current_site in prev_state.visited_labs:
-                lab_visit_cost += current_lab.revisit_extra_cost
+
+                if succ_state.current_site in prev_state.visited_labs:
+                    lab_visit_cost += current_lab.revisit_extra_cost
 
         monetary_cost = drive_cost + lab_visit_cost
 
@@ -347,7 +351,8 @@ class MDAProblem(GraphProblem):
         """
         assert isinstance(state, MDAState)
         # TODO: add: ` and isinstance(state.location, Laboratory)`
-        return set(self.problem_input.reported_apartments) == state.tests_transferred_to_lab
+        return set(self.problem_input.reported_apartments) == state.tests_transferred_to_lab and \
+               isinstance(state.current_site, Laboratory)
 
     def get_zero_cost(self) -> Cost:
         """
@@ -392,5 +397,8 @@ class MDAProblem(GraphProblem):
         current_apartment = [state.current_location]
         apartments = [apartment.location for apartment in remaining_reported_apartments] + current_apartment
         sorted_apartments = sorted(apartments, key=lambda apartment: apartment.index)
+
+        # todo: maybe delete assert:
+        assert len([apartment for apartment in sorted_apartments if not isinstance(apartment, Junction)]) == 0
 
         return sorted_apartments

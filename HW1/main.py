@@ -88,6 +88,7 @@ def run_astar_for_weights_in_range(heuristic_type: HeuristicFunctionType, proble
     list_of_costs = []
     list_of_num_expanded = []
     list_of_successful_weights = []
+    weight_index = 0.0
 
     for current_heuristic_weight in weight_values:
         w_A_star = AStar(heuristic_type, current_heuristic_weight)
@@ -97,6 +98,11 @@ def run_astar_for_weights_in_range(heuristic_type: HeuristicFunctionType, proble
             list_of_costs.append(res.solution_g_cost)
             list_of_num_expanded.append(res.nr_expanded_states)
             list_of_successful_weights.append(current_heuristic_weight)
+
+        # todo: remove:
+        weight_index += 1
+        if weight_index % 5 == 0:
+            print(f'{100 * weight_index // n}%')
 
     plot_distance_and_expanded_wrt_weight_figure(problem.name, list_of_successful_weights,
                                                  list_of_costs, list_of_num_expanded)
@@ -333,7 +339,7 @@ def mda_problem_anytime_astar_experiments():
 def run_all_experiments():
     print('Running all experiments')
     # TODO: remove all '#'s
-    # toy_map_problem_experiments()
+    toy_map_problem_experiments()
     basic_mda_problem_experiments()
     mda_problem_with_astar_experiments()
     mda_problem_with_weighted_astar_experiments()
