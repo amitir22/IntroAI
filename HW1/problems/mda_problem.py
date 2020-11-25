@@ -313,7 +313,7 @@ class MDAProblem(GraphProblem):
         drive_gas_consumption_per_meter = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter
 
         # calc fridges cost
-        total_tests_in_fridges = sum(d.nr_roommates for d in prev_state.tests_on_ambulance)
+        total_tests_in_fridges = prev_state.get_total_nr_tests_taken_and_stored_on_ambulance()
         fridge_capacity = self.problem_input.ambulance.fridge_capacity
         active_fridges = math.ceil(total_tests_in_fridges / fridge_capacity)
         fridges_gas_consumption_per_meter = self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter
@@ -350,7 +350,7 @@ class MDAProblem(GraphProblem):
          In order to create a set from some other collection (list/tuple) you can just `set(some_other_collection)`.
         """
         assert isinstance(state, MDAState)
-        # TODO: add: ` and isinstance(state.location, Laboratory)`
+
         return set(self.problem_input.reported_apartments) == state.tests_transferred_to_lab and \
                isinstance(state.current_site, Laboratory)
 
@@ -379,9 +379,10 @@ class MDAProblem(GraphProblem):
                 generated set.
             Note: This method can be implemented using a single line of code. Try to do so.
         """
-        return list(set(self.problem_input.reported_apartments) -
-                    state.tests_on_ambulance -
-                    state.tests_transferred_to_lab)
+        return sorted(list(set(self.problem_input.reported_apartments) -
+                           state.tests_on_ambulance -
+                           state.tests_transferred_to_lab),
+                      key=lambda apartment: apartment.report_id)
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
         """

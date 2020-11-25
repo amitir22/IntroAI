@@ -52,7 +52,7 @@ class MDAMaxAirDistHeuristic(HeuristicFunction):
         total_distance_lower_bound = max(self.cached_air_distance_calculator.get_air_distance_between_junctions(j1, j2)
                                          for j1 in all_certain_junctions_in_remaining_ambulance_path
                                          for j2 in all_certain_junctions_in_remaining_ambulance_path
-                                         if not j1 == j2)
+                                         if j1.index < j2.index)
 
         return total_distance_lower_bound
 
@@ -166,7 +166,7 @@ class MDAMSTAirDistHeuristic(HeuristicFunction):
         G.add_weighted_edges_from([(j1, j2, get_air_distance(j1, j2))
                                    for j1 in junctions
                                    for j2 in junctions
-                                   if not j1 == j2])
+                                   if j1.index < j2.index])
 
         mst = nx.minimum_spanning_tree(G)
         return mst.size(weight='weight')

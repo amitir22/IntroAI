@@ -279,8 +279,6 @@ def multiple_objectives_mda_problem_experiments():
 
     print(res)
 
-    exit()  # TODO: remove!
-
     # Ex.38
     # TODO: Implement the algorithm A_2 described in this exercise in the assignment instructions.
     #       Create an instance of `AStar` with the `MDAMSTAirDistHeuristic`.
@@ -296,6 +294,20 @@ def multiple_objectives_mda_problem_experiments():
     #          previous parameters with their default values and pass an argument to a parameter that is positioned
     #          elsewhere next.
     #       Solve the `moderate_mda_problem_with_tests_travel_dist_cost` with it and print the results.
+    a1_star = AStar(MDAMSTAirDistHeuristic)
+    res = a1_star.solve_problem(moderate_mda_problem_with_distance_cost)
+
+    optimal_distance_cost = res.solution_g_cost
+    eps = 0.6
+    max_distance_cost = (1 + eps) * optimal_distance_cost
+
+    # opening every node that his distance cost is lower then the allowed range of (1 + e) * optimal_dist_cost
+    node_open_criteria = lambda node: node.cost.distance_cost <= max_distance_cost
+
+    a2_star = AStar(heuristic_function_type=MDATestsTravelDistToNearestLabHeuristic, open_criterion=node_open_criteria)
+    res = a2_star.solve_problem(moderate_mda_problem_with_tests_travel_dist_cost)
+    print(res)
+
     exit()  # TODO: remove!
 
 

@@ -50,11 +50,11 @@ class AStar(BestFirstSearch):
         Notice: You may use `search_node.g_cost`, `self.heuristic_weight`, and `self.heuristic_function`.
         """
         v = search_node.state
-        h = self.heuristic_function.estimate
+        h_v = self.heuristic_function.estimate(v)
         g_v = search_node.g_cost
         w = self.heuristic_weight
 
-        return (1 - w) * g_v + w * h(v)
+        return (1 - w) * g_v + w * h_v
 
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
         """
@@ -75,23 +75,26 @@ class AStar(BestFirstSearch):
         Remember: In A*, in contrast to uniform-cost, a successor state might have an already closed node,
                   but still could be improved.
         """
-        if self.close.has_state(successor_node.state):
+        succ_cost = successor_node.g_cost
+
+        if self.open.has_state(successor_node.state):
+            already_found_node_with_same_state = self.open.get_node_by_state(successor_node.state)
+
+            prev_cost = already_found_node_with_same_state.g_cost
+            should_swap = succ_cost < prev_cost
+
+            if should_swap:
+                self.open.extract_node(already_found_node_with_same_state)
+                self.open.push_node(successor_node)
+
+        elif self.close.has_state(successor_node.state):
             prev_close_node_of_state = self.close.get_node_by_state(successor_node.state)
 
-            succ_cost = successor_node.expanding_priority
-            prev_cost = prev_close_node_of_state.expanding_priority
+            prev_cost = prev_close_node_of_state.g_cost
             should_swap = succ_cost < prev_cost
 
             if should_swap:
                 self.close.remove_node(prev_close_node_of_state)
                 self.open.push_node(successor_node)
-            return
-
-        if self.open.has_state(successor_node.state):
-            already_found_node_with_same_state = self.open.get_node_by_state(successor_node.state)
-
-            if already_found_node_with_same_state.expanding_priority > successor_node.expanding_priority:
-                self.open.extract_node(already_found_node_with_same_state)
-
-        if not self.open.has_state(successor_node.state):
+        else:
             self.open.push_node(successor_node)
