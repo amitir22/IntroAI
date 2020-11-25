@@ -308,8 +308,6 @@ def multiple_objectives_mda_problem_experiments():
     res = a2_star.solve_problem(moderate_mda_problem_with_tests_travel_dist_cost)
     print(res)
 
-    exit()  # TODO: remove!
-
 
 def mda_problem_with_astar_epsilon_experiments():
     print()
@@ -336,7 +334,15 @@ def mda_problem_with_astar_epsilon_experiments():
     #       Use focal_epsilon=0.23, and max_focal_size=40.
     #       Use within_focal_priority_function=within_focal_h_sum_priority_function. This function
     #        (defined just above) is internally using the `MDASumAirDistHeuristic`.
-    exit()  # TODO: remove!
+    focal_epsilon = 0.23
+    max_focal_size = 40
+    a_star_epsilon = AStarEpsilon(heuristic_function_type=MDAMSTAirDistHeuristic,
+                                  within_focal_priority_function=within_focal_h_sum_priority_function,
+                                  focal_epsilon=focal_epsilon,
+                                  max_focal_size=max_focal_size)
+
+    res = a_star_epsilon.solve_problem(small_mda_problem_with_distance_cost)
+    print(res)
 
 
 def mda_problem_anytime_astar_experiments():
@@ -350,7 +356,12 @@ def mda_problem_anytime_astar_experiments():
     # TODO: create an instance of `AnytimeAStar` once with the `MDAMSTAirDistHeuristic`, with
     #       `max_nr_states_to_expand_per_iteration` set to 1000, solve the
     #       `moderate_mda_problem_with_distance_cost` with it and print the results.
-    exit()  # TODO: remove!
+    max_nr_states_to_expand_per_iteration = 1000
+
+    anytime_a_star = AnytimeAStar(heuristic_function_type=MDAMSTAirDistHeuristic,
+                                  max_nr_states_to_expand_per_iteration=max_nr_states_to_expand_per_iteration)
+    res = anytime_a_star.solve_problem(moderate_mda_problem_with_distance_cost)
+    print(res)
 
 
 def run_all_experiments():
@@ -361,9 +372,9 @@ def run_all_experiments():
     # mda_problem_with_astar_experiments()
     # mda_problem_with_weighted_astar_experiments()
     # monetary_cost_objectives_mda_problem_experiments()
-    multiple_objectives_mda_problem_experiments()
+    # multiple_objectives_mda_problem_experiments()
     mda_problem_with_astar_epsilon_experiments()
-    mda_problem_anytime_astar_experiments()
+    # mda_problem_anytime_astar_experiments()
 
 
 if __name__ == '__main__':
