@@ -373,8 +373,8 @@ def run_all_experiments():
     # mda_problem_with_weighted_astar_experiments()
     # monetary_cost_objectives_mda_problem_experiments()
     # multiple_objectives_mda_problem_experiments()
-    mda_problem_with_astar_epsilon_experiments()
-    # mda_problem_anytime_astar_experiments()
+    # mda_problem_with_astar_epsilon_experiments()
+    mda_problem_anytime_astar_experiments()
 
 
 if __name__ == '__main__':
