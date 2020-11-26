@@ -39,7 +39,6 @@ class AStarEpsilon(AStar):
         Extracts the next node to expand from the open queue,
          by focusing on the current FOCAL and choosing the node
          with the best within_focal_priority from it.
-        TODO [Ex.42]: Implement this method!
         Find the minimum expanding-priority value in the `open` queue.
         Calculate the maximum expanding-priority of the FOCAL, which is
          the min expanding-priority in open multiplied by (1 + eps) where
@@ -71,5 +70,70 @@ class AStarEpsilon(AStar):
          method should be kept in the open queue at the end of this method, except
          for the extracted (and returned) node.
         """
+        # Don't forget to handle correctly corner-case like when the open queue
+        #  is empty. In this case a value of `None` has to be returned.
+        if self.open.is_empty():
+            return None
 
-        raise NotImplementedError  # TODO: remove!
+        eps = self.focal_epsilon
+        is_max_focal_size_defined = self.max_focal_size is not None
+
+        focal_list = []
+
+        # Find the minimum expanding-priority value in the `open` queue.
+        minimum_expanding_priority_value = self.open.peek_next_node().expanding_priority
+
+        # Calculate the maximum expanding-priority of the FOCAL, which is
+        #  the min expanding-priority in open multiplied by (1 + eps) where
+        #  eps is stored under `self.focal_epsilon`.
+        max_expanding_priority_of_focal = (1 + eps) * minimum_expanding_priority_value
+
+        # Create the FOCAL by popping items from the `open` queue and inserting
+        #          them into a focal list. Don't forget to satisfy the constraint of
+        #          `self.max_focal_size` if it is set (not None).
+        if is_max_focal_size_defined:
+            while len(focal_list) < self.max_focal_size and not self.open.is_empty():
+                current_node = self.open.pop_next_node()
+
+                if current_node.expanding_priority <= max_expanding_priority_of_focal:
+                    focal_list.append(current_node)
+                else:
+                    # if not entering the focal now push it back into open and because open is priority queue
+                    # we can break the search here because the expanding priority of the next nodes will only rise
+                    self.open.push_node(current_node)
+                    break
+        else:
+            while not self.open.is_empty():
+                current_node = self.open.pop_next_node()
+                if current_node.expanding_priority <= max_expanding_priority_of_focal:
+                    focal_list.append(current_node)
+                else:
+                    # if not entering the focal now push it back into open and because open is priority queue
+                    # we can break the search here because the expanding priority of the next nodes will only rise
+                    self.open.push_node(current_node)
+                    break
+
+        # For each node (candidate) in the created focal, calculate its priority
+        #  by calling the function `self.within_focal_priority_function` on it.
+        #  This function expects to get 3 values: the node, the problem and the
+        #  solver (self). You can create an array of these priority value. Then,
+        #  use `np.argmin()` to find the index of the item (within this array)
+        #  with the minimal value. After having this index you could pop this
+        #  item from the focal (at this index). This is the node that have to
+        #  be eventually returned.
+        expanding_priority_focal_array = np.array([self.within_focal_priority_function(node, problem, self)
+                                                   for node in focal_list])
+        min_expanding_priority_index = int(np.argmin(expanding_priority_focal_array))
+
+        next_search_node = focal_list[min_expanding_priority_index]
+
+        # push the rest of the focal back to the open queue (beside the node we return)
+        focal_list.remove(next_search_node)
+
+        for node in focal_list:
+            self.open.push_node(node)
+
+        if self.use_close:
+            self.close.add_node(next_search_node)
+
+        return next_search_node
