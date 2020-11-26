@@ -191,17 +191,6 @@ class MDAProblem(GraphProblem):
             visit operator was applied (to take tests from the roommates of an apartment), or
             `go to lab LabName` if a laboratory visit operator was applied.
             The apartment-report object stores its reporter-name in one of its fields.
-        Things you might want to use:
-            - The method `self.get_total_nr_tests_taken_and_stored_on_ambulance()`.
-            - The field `self.problem_input.laboratories`.
-            - The field `self.problem_input.ambulance.total_fridges_capacity`.
-            - The method `self.get_reported_apartments_waiting_to_visit()` here.
-            - The method `self.get_operator_cost()`.
-            - The c'tor for `AmbulanceState` to create the new successor state.
-            - Python's built-in method `frozenset()` to create a new frozen set (for fields that
-              expect this type) from another collection (set/list/tuple/iterator).
-            - Other fields of the state and the problem input.
-            - Python's sets union operation (`some_set_or_frozenset | some_other_set_or_frozenset`).
         """
         assert isinstance(state_to_expand, MDAState)
 
