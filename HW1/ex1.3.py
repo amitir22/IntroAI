@@ -40,19 +40,20 @@ def calc_estimated_calculation_time(k: int, m: int):
     power = calc_num_of_testing_paths_in_1_sec(k, m)
     time = work / power
 
-    return time
+    return work, time
 
 
 def main():
     current_multiplier = 1 # the first unit is in seconds.
     
     for k, m, multiplier, units in generate_next_input():
-        t = calc_estimated_calculation_time(k, m)
+        w, t = calc_estimated_calculation_time(k, m)
         current_multiplier *= multiplier
         
         t_in_units = t / current_multiplier
+        work_len = len(str(w)) - 1
         
-        print(f'k={k}, m={m}, t={t_in_units}[{units}]')
+        print(f'k={k},\t m={m},\t num possible paths={w * 100 // (10 ** work_len) / 100} x10^{work_len},  \tt={t_in_units} [{units}]')
 
 
 if __name__ == '__main__':
