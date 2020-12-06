@@ -4,34 +4,35 @@ import os, sys
 import utils
 
 if __name__ == "__main__":
-    players_options = [ x+'Player' for x in ['Live', 'Simple', 'Minimax', 'Alphabeta', 'GlobalTimeAB', 'LightAB', 'Compete']]
+    players_options = [x + 'Player' for x in
+                       ['Live', 'Simple', 'Minimax', 'Alphabeta', 'GlobalTimeAB', 'LightAB', 'Compete']]
 
     parser = argparse.ArgumentParser()
-    
-    parser.add_argument('-player1', default='LivePlayer', type=str, 
+
+    parser.add_argument('-player1', default='LivePlayer', type=str,
                         help='The type of the first player.',
                         choices=players_options)
-    parser.add_argument('-player2', default='LivePlayer',  type=str, 
+    parser.add_argument('-player2', default='LivePlayer', type=str,
                         help='The type of the second player.',
                         choices=players_options)
-    
-    parser.add_argument('-board', default='default_board.csv', type=str, 
+
+    parser.add_argument('-board', default='default_board.csv', type=str,
                         help='Name of board file (.csv).')
 
-    parser.add_argument('-move_time', default=200, type=float, 
+    parser.add_argument('-move_time', default=200, type=float,
                         help='Time (sec) for each turn.')
-    parser.add_argument('-game_time', default=2000, type=float, 
+    parser.add_argument('-game_time', default=2000, type=float,
                         help='Global game time (sec) for each player.')
-    parser.add_argument('-penalty_score', default=300, type=float, 
+    parser.add_argument('-penalty_score', default=300, type=float,
                         help='Penalty points for a player when it cant move or its time ends.')
-    parser.add_argument('-max_fruit_score', default=300, type=float, 
+    parser.add_argument('-max_fruit_score', default=300, type=float,
                         help='Max points for a fruit on board.')
-    parser.add_argument('-max_fruit_time', default=15, type=float, 
+    parser.add_argument('-max_fruit_time', default=15, type=float,
                         help='Max time for fruit on the board (turns).')
 
-    parser.add_argument('-terminal_viz', action='store_true', 
+    parser.add_argument('-terminal_viz', action='store_true',
                         help='Show game in terminal only.')
-    parser.add_argument('-dont_print_game', action='store_true', 
+    parser.add_argument('-dont_print_game', action='store_true',
                         help='Together with "terminal_viz", show in terminal only the winner.')
     args = parser.parse_args()
 
@@ -67,13 +68,13 @@ if __name__ == "__main__":
 
     # create game with the given args
     game = GameWrapper(board[0], board[1], board[2], player_1=player_1, player_2=player_2,
-                    terminal_viz=args.terminal_viz, 
-                    print_game_in_terminal=not args.dont_print_game,
-                    time_to_make_a_move=args.move_time, 
-                    game_time=game_time, 
-                    penalty_score = args.penalty_score,
-                    max_fruit_score = args.max_fruit_score,
-                    max_fruit_time = args.max_fruit_time)
-    
+                       terminal_viz=args.terminal_viz,
+                       print_game_in_terminal=not args.dont_print_game,
+                       time_to_make_a_move=args.move_time,
+                       game_time=game_time,
+                       penalty_score=args.penalty_score,
+                       max_fruit_score=args.max_fruit_score,
+                       max_fruit_time=args.max_fruit_time)
+
     # start playing!
     game.start_game()
