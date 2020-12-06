@@ -6,6 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/HW1/problems" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/HW1" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/HW0" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/HW2" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/HW2/players" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
     <orderEntry type="inheritedJdk" />
