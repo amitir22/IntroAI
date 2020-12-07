@@ -59,6 +59,8 @@ class Game:
 
         aspect = len(self.map[0]) / len(self.map)
         self.fig = plt.figure(frameon=False, figsize=(4 * aspect, 4))
+        # todo: remove:
+        plt.rcParams['keymap.save'].remove('s')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.fig.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=None, hspace=None)
 
