@@ -37,8 +37,7 @@ class Player(AbstractPlayer):
         counter = len(np.where(board == 1)[0])
         return counter
 
-
-    def make_move(self, time_limit):  # time parameter is not used, we assume we have enough time.
+    def make_move(self, time_limit, players_score):  # time parameter is not used, we assume we have enough time.
 
         assert self.count_ones(self.board) == 1
 
@@ -54,7 +53,6 @@ class Player(AbstractPlayer):
 
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):   # then move is legal
                 new_pos = (i, j)
-                assert self.board[new_pos] == 0
                 self.board[new_pos] = 1
                 assert self.count_ones(self.board) == 1
 

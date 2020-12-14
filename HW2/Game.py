@@ -10,7 +10,7 @@ import utils
 
 class Game:
     def __init__(self, board, players_positions, max_fruit_score, max_fruit_time,
-                fruits_max_part_of_free_spaces = 0.3,
+                fruits_max_part_of_free_spaces = 0.2,
                 animated=False, animation_func = None):
         """Initialize the game properties with parameters.
         input:
@@ -49,7 +49,7 @@ class Game:
         
         if self.animated:
             self.init_animation()
-
+        self.create_fruits()
         self.players_positions = [tuple(reversed(position)) for position in self.players_positions]
 
     def init_animation(self):
@@ -59,8 +59,6 @@ class Game:
 
         aspect = len(self.map[0]) / len(self.map)
         self.fig = plt.figure(frameon=False, figsize=(4 * aspect, 4))
-        # todo: remove:
-        plt.rcParams['keymap.save'].remove('s')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.fig.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=None, hspace=None)
 
@@ -163,9 +161,18 @@ class Game:
         self.map[pos[0],pos[1]] = value
 
         # update fruits_on_board tracking
-        board_time = random.randint(self.min_fruit_time, self.max_fruit_time) # in turns
+        board_time = self.min_fruit_time * 2
         self.fruits_on_board[pos] = {'fruit_art':fruit, 'value': value, 'board_time_left':board_time}
 
+    def create_fruits(self):
+        num_free_places = len(np.where(self.map == 0)[0])
+        if num_free_places != 0:
+            num_fruits = random.randint(0, int(num_free_places * self.fruits_max_part_of_free_spaces))
+            # add new fruits in free spaces (not occupied by players, fruits, blocked cells)
+            for _ in range(num_fruits):
+                pos = self.choose_fruit_pos() # don't cover the players, existing fruits and blocked cells
+                if pos != -1:
+                    self.add_fruit(pos)
 
     def update_fruits(self):
         # update fruits timings
@@ -178,16 +185,6 @@ class Game:
         for fruit_key in fruits_to_remove:
             self.remove_fruit_from_board(pos = fruit_key)
 
-        num_free_places = len(np.where(self.map == 0)[0])
-        if num_free_places != 0 and (len(self.fruits_on_board) /  num_free_places) < self.fruits_max_part_of_free_spaces:
-            num_fruits = random.randint(0, 1) # max fruits in addition in every iteration is 1
-
-            # add new fruits in free spaces (not occupied by players, fruits, blocked cells)
-            for _ in range(num_fruits):
-                pos = self.choose_fruit_pos() # don't cover the players, existing fruits and blocked cells
-                if pos != -1:
-                    self.add_fruit(pos)
-    
 
     def update_player_pos(self, pos):
         prev_pos = self.players_positions[self.turn]
