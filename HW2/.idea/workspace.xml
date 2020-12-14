@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f590e710-10c1-4faa-89f4-3f0fb51fa8a9" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1lEZGywEUXshJRZwvCJqb8Wyc26" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="intro_to_AI_hw2_2020-provided-code" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="-player1 SimplePlayer -player2 SimplePlayer -board q2.csv  -penalty_score 100 -max_fruit_score 3" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f590e710-10c1-4faa-89f4-3f0fb51fa8a9" name="Default Changelist" comment="" />
+      <created>1607164119787</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1607164119787</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="112" y="213" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1607880959658">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="112" y="213" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1440.900@0.0.1440.900" timestamp="1607880959658" />
+    <state x="232" y="111" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1440.822@0.23.1440.822" timestamp="1607441797517" />
+    <state x="112" y="170" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1440.823@0.23.1440.823" timestamp="1607441323519" />
+    <state width="1419" height="247" key="GridCell.Tab.0.bottom" timestamp="1607891203190">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="247" key="GridCell.Tab.0.bottom/0.0.1440.900@0.0.1440.900" timestamp="1607891203190" />
+    <state width="1419" height="162" key="GridCell.Tab.0.bottom/0.23.1440.822@0.23.1440.822" timestamp="1607881665302" />
+    <state width="1419" height="312" key="GridCell.Tab.0.bottom/0.23.1440.823@0.23.1440.823" timestamp="1607881194957" />
+    <state width="1265" height="173" key="GridCell.Tab.0.bottom/0.23.1440.825@0.23.1440.825" timestamp="1607285483576" />
+    <state width="1419" height="247" key="GridCell.Tab.0.center" timestamp="1607891203189">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="247" key="GridCell.Tab.0.center/0.0.1440.900@0.0.1440.900" timestamp="1607891203189" />
+    <state width="1419" height="162" key="GridCell.Tab.0.center/0.23.1440.822@0.23.1440.822" timestamp="1607881665301" />
+    <state width="1419" height="312" key="GridCell.Tab.0.center/0.23.1440.823@0.23.1440.823" timestamp="1607881194957" />
+    <state width="1265" height="173" key="GridCell.Tab.0.center/0.23.1440.825@0.23.1440.825" timestamp="1607285483575" />
+    <state width="1419" height="247" key="GridCell.Tab.0.left" timestamp="1607891203188">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="247" key="GridCell.Tab.0.left/0.0.1440.900@0.0.1440.900" timestamp="1607891203188" />
+    <state width="1419" height="162" key="GridCell.Tab.0.left/0.23.1440.822@0.23.1440.822" timestamp="1607881665300" />
+    <state width="1419" height="312" key="GridCell.Tab.0.left/0.23.1440.823@0.23.1440.823" timestamp="1607881194956" />
+    <state width="1265" height="173" key="GridCell.Tab.0.left/0.23.1440.825@0.23.1440.825" timestamp="1607285483575" />
+    <state width="1419" height="247" key="GridCell.Tab.0.right" timestamp="1607891203189">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="247" key="GridCell.Tab.0.right/0.0.1440.900@0.0.1440.900" timestamp="1607891203189" />
+    <state width="1419" height="162" key="GridCell.Tab.0.right/0.23.1440.822@0.23.1440.822" timestamp="1607881665302" />
+    <state width="1419" height="312" key="GridCell.Tab.0.right/0.23.1440.823@0.23.1440.823" timestamp="1607881194957" />
+    <state width="1265" height="173" key="GridCell.Tab.0.right/0.23.1440.825@0.23.1440.825" timestamp="1607285483576" />
+    <state width="1419" height="251" key="GridCell.Tab.1.bottom" timestamp="1607891203179">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="251" key="GridCell.Tab.1.bottom/0.0.1440.900@0.0.1440.900" timestamp="1607891203179" />
+    <state width="1419" height="218" key="GridCell.Tab.1.bottom/0.23.1440.822@0.23.1440.822" timestamp="1607881289124" />
+    <state width="1419" height="312" key="GridCell.Tab.1.bottom/0.23.1440.823@0.23.1440.823" timestamp="1607881190612" />
+    <state width="1419" height="251" key="GridCell.Tab.1.bottom/0.23.1440.825@0.23.1440.825" timestamp="1607890787449" />
+    <state width="1419" height="251" key="GridCell.Tab.1.center" timestamp="1607891203178">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="251" key="GridCell.Tab.1.center/0.0.1440.900@0.0.1440.900" timestamp="1607891203178" />
+    <state width="1419" height="218" key="GridCell.Tab.1.center/0.23.1440.822@0.23.1440.822" timestamp="1607881289123" />
+    <state width="1419" height="312" key="GridCell.Tab.1.center/0.23.1440.823@0.23.1440.823" timestamp="1607881190610" />
+    <state width="1419" height="251" key="GridCell.Tab.1.center/0.23.1440.825@0.23.1440.825" timestamp="1607890787446" />
+    <state width="1419" height="251" key="GridCell.Tab.1.left" timestamp="1607891203178">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="251" key="GridCell.Tab.1.left/0.0.1440.900@0.0.1440.900" timestamp="1607891203178" />
+    <state width="1419" height="218" key="GridCell.Tab.1.left/0.23.1440.822@0.23.1440.822" timestamp="1607881289123" />
+    <state width="1419" height="312" key="GridCell.Tab.1.left/0.23.1440.823@0.23.1440.823" timestamp="1607881190609" />
+    <state width="1419" height="251" key="GridCell.Tab.1.left/0.23.1440.825@0.23.1440.825" timestamp="1607890787444" />
+    <state width="1419" height="251" key="GridCell.Tab.1.right" timestamp="1607891203179">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1419" height="251" key="GridCell.Tab.1.right/0.0.1440.900@0.0.1440.900" timestamp="1607891203179" />
+    <state width="1419" height="218" key="GridCell.Tab.1.right/0.23.1440.822@0.23.1440.822" timestamp="1607881289123" />
+    <state width="1419" height="312" key="GridCell.Tab.1.right/0.23.1440.823@0.23.1440.823" timestamp="1607881190611" />
+    <state width="1419" height="251" key="GridCell.Tab.1.right/0.23.1440.825@0.23.1440.825" timestamp="1607890787447" />
+    <state x="220" y="123" key="SettingsEditor" timestamp="1607441933736">
+      <screen x="0" y="23" width="1440" height="822" />
+    </state>
+    <state x="220" y="178" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1607164438800" />
+    <state x="220" y="123" key="SettingsEditor/0.23.1440.822@0.23.1440.822" timestamp="1607441933736" />
+    <state x="392" y="125" width="683" height="518" key="find.popup" timestamp="1607890693218">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="392" y="125" width="683" height="518" key="find.popup/0.0.1440.900@0.0.1440.900" timestamp="1607890693218" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/GameWrapper.py</url>
+          <line>67</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/GameWrapper.py</url>
+          <line>60</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/players/SimplePlayer.py</url>
+          <line>41</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/GameWrapper.py</url>
+          <line>81</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
