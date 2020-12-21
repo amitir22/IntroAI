@@ -26,10 +26,12 @@ class MiniMax(SearchAlgos):
 
     def search(self, state, depth, maximizing_player):
         """Start the MiniMax algorithm.
-        :param state: The state to start from.
-        :param depth: The maximum allowed depth for the algorithm.
-        :param maximizing_player: Whether this is a max node (True) or a min node (False).
-        :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
+        input:
+            :param state: The state to start from.
+            :param depth: The maximum allowed depth for the algorithm.
+            :param maximizing_player: Whether this is a max node (True) or a min node (False).
+        output:
+            :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
         #TODO: erase the following line and implement this function.
         raise NotImplementedError
@@ -39,12 +41,14 @@ class AlphaBeta(SearchAlgos):
 
     def search(self, state, depth, maximizing_player, alpha=ALPHA_VALUE_INIT, beta=BETA_VALUE_INIT):
         """Start the AlphaBeta algorithm.
-        :param state: The state to start from.
-        :param depth: The maximum allowed depth for the algorithm.
-        :param maximizing_player: Whether this is a max node (True) or a min node (False).
-        :param alpha: alpha value
-        :param: beta: beta value
-        :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
+        input:
+            :param state: The state to start from.
+            :param depth: The maximum allowed depth for the algorithm.
+            :param maximizing_player: Whether this is a max node (True) or a min node (False).
+            :param alpha: alpha value
+            :param: beta: beta value
+        output:
+            :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
         #TODO: erase the following line and implement this function.
         raise NotImplementedError
