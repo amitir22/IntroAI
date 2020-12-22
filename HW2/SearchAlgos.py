@@ -33,7 +33,16 @@ class MiniMax(SearchAlgos):
         output:
             :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        #TODO: erase the following line and implement this function.
+
+        # todo: check if target state
+        # todo: handle target state (leaf) and calc heuristics.
+
+        # todo: check if leaf
+        # todo: handle leaf (game not ended yet but depth=0 reached)
+
+        # todo: assert non leaf and non target state.
+        # todo: handle general case where 4 moves available etc...
+
         raise NotImplementedError
 
 
