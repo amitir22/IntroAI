@@ -100,6 +100,6 @@ class Player(AbstractPlayer):
     #TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
     @staticmethod
-    def heuristic_function(state):
+    def heuristic_function(state: PlayerState):
         pass
 
