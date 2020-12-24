@@ -1,6 +1,9 @@
 """Search Algos: MiniMax, AlphaBeta
 """
 from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
+import numpy as np
+
+
 # TODO: you can import more modules, if needed
 
 
@@ -36,17 +39,31 @@ class MiniMax(SearchAlgos):
         output:
             :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+        if self.goal(state):
+            # TODO: make sure the criteria is ok
+            # score of goal is the difference in scores
+            return state.my_score - state.rival_score, state.direction_from_previous_state
+        elif depth == 0:
+            return self.utility(state), state.direction_from_previous_state
+        else:
+            if maximizing_player:
+                current_best_value = -np.inf
+            else:
+                current_best_value = np.inf
 
-        # todo: check if target state
-        # todo: handle target state (leaf) and calc heuristics.
+            current_best_direction = (0, 0)
 
-        # todo: check if leaf
-        # todo: handle leaf (game not ended yet but depth=0 reached)
+            for succ_state in self.succ(state):
+                value, direction = self.search(succ_state, depth - 1, not maximizing_player)
 
-        # todo: assert non leaf and non target state.
-        # todo: handle general case where 4 moves available etc...
+                is_max_state_and_new_max_value = maximizing_player and value > current_best_value
+                is_min_state_and_new_min_value = not maximizing_player and value < current_best_value
 
-        raise NotImplementedError
+                if is_max_state_and_new_max_value or is_min_state_and_new_min_value:
+                    current_best_value = value
+                    current_best_direction = direction
+
+            return current_best_value, current_best_direction
 
 
 class AlphaBeta(SearchAlgos):
@@ -62,5 +79,5 @@ class AlphaBeta(SearchAlgos):
         output:
             :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        #TODO: erase the following line and implement this function.
+        # TODO: erase the following line and implement this function.
         raise NotImplementedError

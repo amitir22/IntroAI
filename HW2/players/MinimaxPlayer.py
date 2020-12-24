@@ -13,12 +13,12 @@ import utils
 # TODO: you can import more modules, if needed
 
 
-# TODO: consider storing in the state class a miniboard instead.
 @dataclasses.dataclass(init=True)
 class PlayerState:
     MY_TURN = 0
     RIVAL_TURN = 1
 
+    direction_from_previous_state: Tuple[int, int]
     turn: int
     board: np.array  # matrix
     fruit_locations: Dict[Tuple[int, int]: int]  # key: location, value: fruit_score
@@ -83,7 +83,7 @@ class Player(AbstractPlayer):
         AbstractPlayer.__init__(self, game_time, penalty_score)
         self.game_time = game_time
         self.penalty_score = penalty_score
-        self.search_algo = MiniMax(Player.is_move_valid, Player.successor_function,
+        self.search_algo = MiniMax(Player.heuristic_function, Player.successor_function,
                                    None, Player.is_goal)  # TODO: replace None?
         self.directions = utils.get_directions()
         self.my_state_list = []
@@ -113,7 +113,7 @@ class Player(AbstractPlayer):
 
         self.current_state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=min(num_cols, num_rows),
                                          players_scores=players_scores, players_locations=players_locations,
-                                         player=self, turn=PlayerState.MY_TURN)
+                                         player=self, turn=PlayerState.MY_TURN, direction_from_previous_state=(0, 0))
         self.my_state_list.append(self.current_state)
 
     def make_move(self, time_limit, players_score):
@@ -129,7 +129,7 @@ class Player(AbstractPlayer):
 
         # setting up variables for the anytime-minimax
         should_continue_to_next_iteration = True
-        current_depth = 1
+        current_depth = 0
         last_minimax_value = 0
         last_best_move = (0, 0)
         time_left = time_limit
@@ -137,8 +137,8 @@ class Player(AbstractPlayer):
         # executing minimax in anytime-contact
         while should_continue_to_next_iteration:
             tick = time.time()
-            last_minimax_value, last_best_move = self.search_algo.search(self.current_state, current_depth, True)
             current_depth += 1
+            last_minimax_value, last_best_move = self.search_algo.search(self.current_state, current_depth, True)
             tock = time.time()
 
             # time management
@@ -157,6 +157,7 @@ class Player(AbstractPlayer):
 
         next_state.my_loc = utils.tup_add(self.current_state.my_loc, last_best_move)
         next_state.board[next_state.my_loc] = Player.BLOCK_CELL
+        next_state.direction_from_previous_state = last_best_move
 
         self.current_state = next_state
         self.my_state_list.append(self.current_state)
@@ -226,6 +227,7 @@ class Player(AbstractPlayer):
 
             next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
 
+            next_state.direction_from_previous_state = direction
             next_state.fruits_turns_to_live -= 1
 
             loc = state.players_locations[next_state.turn]
@@ -241,3 +243,56 @@ class Player(AbstractPlayer):
                 next_state.board[new_loc] = Player.BLOCK_CELL
 
                 yield next_state
+
+    @staticmethod
+    def heuristic_function(state: PlayerState):
+        a = 2  # todo: change
+        board = state.board
+
+        my_row, my_col = state.my_loc
+
+        # todo: consider refactor to a single loop to reduce calculation time
+
+        locations_to_scan = [board[(row, col)]
+                             for row in range(my_row - a, my_row + a + 1)
+                             for col in range(my_col - a, my_col + a + 1)
+                             if (row, col) != (my_row, my_col)]
+
+        score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0])
+        score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0])
+
+        # todo: end-todo
+        current_min_fruit_dist = np.inf
+        current_min_fruit_score = 0
+
+        for fruit_loc in state.fruit_locations:
+            fruit_score = board[fruit_loc]
+
+            my_fruit_dist = Player.m_dist(state.my_loc, fruit_loc)
+            rival_fruit_dist = Player.m_dist(state.rival_loc, fruit_loc)
+
+            is_fruit_viable = my_fruit_dist < rival_fruit_dist and my_fruit_dist <= state.fruits_turns_to_live
+
+            if is_fruit_viable and (my_fruit_dist, fruit_score) < (current_min_fruit_dist, current_min_fruit_score):
+                current_min_fruit_dist, current_min_fruit_score = my_fruit_dist, fruit_score
+
+        score_closest_fruit_m_dist = current_min_fruit_dist
+        score_adversary_m_dist = Player.m_dist(state.my_loc, state.rival_loc)
+
+        is_not_hole_state = 0
+
+        for direction in state.player.directions:
+            new_loc = utils.tup_add(state.my_loc, direction)
+            if board[new_loc] != Player.BLOCK_CELL:
+                is_not_hole_state = 1
+                break
+
+        return is_not_hole_state * ((score_available_cells / score_blocked_cells) /
+                                    (score_closest_fruit_m_dist + score_adversary_m_dist))
+
+    @staticmethod
+    def m_dist(loc1: Tuple[int, int], loc2: Tuple[int, int]):
+        row1, col1 = loc1
+        row2, col2 = loc2
+
+        return np.abs(row2 - row1) + np.abs(col2 - col1)
