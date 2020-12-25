@@ -21,10 +21,10 @@ class PlayerState:
     direction_from_previous_state: Tuple[int, int]
     turn: int
     board: np.array  # matrix
-    fruit_locations: Dict[Tuple[int, int]: int]  # key: location, value: fruit_score
+    fruit_locations: Dict[Tuple[int, int], int]  # key: location, value: fruit_score
     fruits_turns_to_live: int
-    players_locations: Dict[int: Tuple[int, int]]
-    players_scores: Dict[int: int]
+    players_locations: Dict[int, Tuple[int, int]]
+    players_scores: Dict[int, int]
     player: AbstractPlayer
 
     @property
@@ -76,15 +76,17 @@ class Player(AbstractPlayer):
     num_rows: int
     num_cols: int
     directions: List[Tuple[int, int]]
-    my_state_list: List[PlayerState]  # TODO: remove before submission. here for debugging purposes.
+
+    # TODO: remove before submission. here for debugging purposes.
+    my_state_list: List[Tuple[PlayerState, int, Tuple[int, int]]]
 
     def __init__(self, game_time, penalty_score):
         # keep the inheritance of the parent's (AbstractPlayer) __init__()
         AbstractPlayer.__init__(self, game_time, penalty_score)
         self.game_time = game_time
         self.penalty_score = penalty_score
-        self.search_algo = MiniMax(Player.heuristic_function, Player.successor_function,
-                                   None, Player.is_goal)  # TODO: replace None?
+        self.search_algo = MiniMax(Player.heuristic_function, Player.successor_states_of,
+                                   Player.perform_move, Player.is_goal_state)
         self.directions = utils.get_directions()
         self.my_state_list = []
 
@@ -155,12 +157,17 @@ class Player(AbstractPlayer):
 
         next_state = self.current_state.duplicate()
 
-        next_state.my_loc = utils.tup_add(self.current_state.my_loc, last_best_move)
-        next_state.board[next_state.my_loc] = Player.BLOCK_CELL
+        assert last_best_move != (0, 0)
+
+        # updating the board in the next state
+        did_move = Player.perform_move(next_state, PlayerState.MY_TURN, last_best_move)
+
+        assert did_move
+
         next_state.direction_from_previous_state = last_best_move
 
         self.current_state = next_state
-        self.my_state_list.append(self.current_state)
+        self.my_state_list.append((self.current_state, last_minimax_value, last_best_move))
 
         return last_best_move
 
@@ -193,19 +200,36 @@ class Player(AbstractPlayer):
 
     @staticmethod
     def is_move_valid(board: np.array, location: tuple, direction: tuple):
-        new_row, new_col = utils.tup_add(location, direction)
+        new_loc = utils.tup_add(location, direction)
 
-        is_new_loc_in_board = 0 <= new_row <= Player.num_rows and 0 <= new_col <= Player.num_cols
-
-        if is_new_loc_in_board:
-            is_not_blocked = board[new_row][new_col] != Player.BLOCK_CELL
+        if Player.is_location_in_board(board, new_loc):
+            is_not_blocked = board[new_loc] != Player.BLOCK_CELL
 
             return is_not_blocked
         else:
             return False
 
     @staticmethod
-    def is_goal(state: PlayerState):
+    def perform_move(state: PlayerState, player_turn: int, direction: tuple):
+        """
+        input:
+            :param state: the state which we update
+            :param player_turn: if 0 -> moving my player, else (=1) -> moving rival player
+            :param direction: the direction of the move
+        output:
+            :return: True if move successful, False if illegal move (blocked or out of bounds)
+        """
+        player_loc = state.players_locations[player_turn]
+
+        if Player.is_move_valid(state.board, player_loc, direction):
+            state.players_locations[player_turn] = utils.tup_add(player_loc, direction)
+            state.board[player_loc] = Player.BLOCK_CELL
+
+            return True
+        return False
+
+    @staticmethod
+    def is_goal_state(state: PlayerState):
         directions = state.player.directions
         am_i_blocked = True
         is_rival_blocked = True
@@ -221,7 +245,7 @@ class Player(AbstractPlayer):
         return am_i_blocked or is_rival_blocked
 
     @staticmethod
-    def successor_function(state: PlayerState):
+    def successor_states_of(state: PlayerState):
         for direction in state.player.directions:
             next_state = state.duplicate()
 
@@ -230,10 +254,8 @@ class Player(AbstractPlayer):
             next_state.direction_from_previous_state = direction
             next_state.fruits_turns_to_live -= 1
 
-            loc = state.players_locations[next_state.turn]
-
-            if Player.is_move_valid(state.board, loc, direction):
-                new_loc = utils.tup_add(loc, direction)
+            if Player.perform_move(next_state, next_state.turn, direction):
+                new_loc = next_state.players_locations[next_state.turn]
 
                 if new_loc in state.fruit_locations:
                     del next_state.fruit_locations[new_loc]
@@ -247,26 +269,24 @@ class Player(AbstractPlayer):
     @staticmethod
     def heuristic_function(state: PlayerState):
         a = 2  # todo: change
-        board = state.board
 
         my_row, my_col = state.my_loc
 
         # todo: consider refactor to a single loop to reduce calculation time
-
-        locations_to_scan = [board[(row, col)]
+        locations_to_scan = [state.board[(row, col)]
                              for row in range(my_row - a, my_row + a + 1)
                              for col in range(my_col - a, my_col + a + 1)
-                             if (row, col) != (my_row, my_col)]
+                             if Player.is_location_in_board(state.board, (row, col)) and (row, col) != (my_row, my_col)]
 
         score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0])
         score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0])
-
         # todo: end-todo
+
         current_min_fruit_dist = np.inf
         current_min_fruit_score = 0
 
         for fruit_loc in state.fruit_locations:
-            fruit_score = board[fruit_loc]
+            fruit_score = state.board[fruit_loc]
 
             my_fruit_dist = Player.m_dist(state.my_loc, fruit_loc)
             rival_fruit_dist = Player.m_dist(state.rival_loc, fruit_loc)
@@ -283,12 +303,22 @@ class Player(AbstractPlayer):
 
         for direction in state.player.directions:
             new_loc = utils.tup_add(state.my_loc, direction)
-            if board[new_loc] != Player.BLOCK_CELL:
+
+            if Player.is_location_in_board(state.board, new_loc) and state.board[new_loc] != Player.BLOCK_CELL:
                 is_not_hole_state = 1
                 break
 
         return is_not_hole_state * ((score_available_cells / score_blocked_cells) /
                                     (score_closest_fruit_m_dist + score_adversary_m_dist))
+
+    @staticmethod
+    def is_location_in_board(board: np.array, location: Tuple[int, int]):
+        num_rows = len(board)
+        num_cols = len(board[0])
+
+        row, col = location
+
+        return 0 <= row < num_rows and 0 <= col < num_cols
 
     @staticmethod
     def m_dist(loc1: Tuple[int, int], loc2: Tuple[int, int]):

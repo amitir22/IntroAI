@@ -39,12 +39,23 @@ class MiniMax(SearchAlgos):
         output:
             :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+        heuristic_function = self.utility
+
         if self.goal(state):
             # TODO: make sure the criteria is ok
-            # score of goal is the difference in scores
-            return state.my_score - state.rival_score, state.direction_from_previous_state
+            # TODO: check who lost and update scores accoringly
+
+            prize = 1000000
+            diff = state.my_score - state.rival_score
+
+            if diff < 0:
+                return -prize, state.direction_from_previous_state
+            if diff > 0:
+                return prize, state.direction_from_previous_state
+
+            return diff, state.direction_from_previous_state
         elif depth == 0:
-            return self.utility(state), state.direction_from_previous_state
+            return heuristic_function(state), state.direction_from_previous_state
         else:
             if maximizing_player:
                 current_best_value = -np.inf
@@ -62,6 +73,8 @@ class MiniMax(SearchAlgos):
                 if is_max_state_and_new_max_value or is_min_state_and_new_min_value:
                     current_best_value = value
                     current_best_direction = direction
+
+            assert current_best_direction != (0, 0)
 
             return current_best_value, current_best_direction
 
