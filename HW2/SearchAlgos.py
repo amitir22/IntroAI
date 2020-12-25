@@ -39,44 +39,57 @@ class MiniMax(SearchAlgos):
         output:
             :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+        assert depth > 0
         heuristic_function = self.utility
+        succ_states = self.succ(state)
 
-        if self.goal(state):
-            # TODO: make sure the criteria is ok
-            # TODO: check who lost and update scores accoringly
-
+        if len(succ_states) == 0:  # goal state
             prize = 1000000
-            diff = state.my_score - state.rival_score
 
-            if diff < 0:
-                return -prize, state.direction_from_previous_state
-            if diff > 0:
-                return prize, state.direction_from_previous_state
-
-            return diff, state.direction_from_previous_state
-        elif depth == 0:
-            return heuristic_function(state), state.direction_from_previous_state
-        else:
             if maximizing_player:
-                current_best_value = -np.inf
+                score_diff = state.my_score - state.rival_score - state.player.penalty_score
             else:
-                current_best_value = np.inf
+                score_diff = state.my_score - state.rival_score + state.player.penalty_score
 
-            current_best_direction = (0, 0)
+            if score_diff > 0:
+                return prize, None
+            else:
+                return -prize, None
 
-            for succ_state in self.succ(state):
-                value, direction = self.search(succ_state, depth - 1, not maximizing_player)
+        current_best_direction = (0, 0)
 
-                is_max_state_and_new_max_value = maximizing_player and value > current_best_value
-                is_min_state_and_new_min_value = not maximizing_player and value < current_best_value
+        if maximizing_player:
+            current_max_value = -np.inf
 
-                if is_max_state_and_new_max_value or is_min_state_and_new_min_value:
-                    current_best_value = value
-                    current_best_direction = direction
+            for succ_state, succ_direction in succ_states:
+                if depth == 1:  # expanding leaves
+                    value = heuristic_function(succ_state)
+                else:
+                    value, direction = self.search(succ_state, depth - 1, not maximizing_player)
+
+                if value > current_max_value:
+                    current_max_value = value
+                    current_best_direction = succ_direction
 
             assert current_best_direction != (0, 0)
 
-            return current_best_value, current_best_direction
+            return current_max_value, current_best_direction
+        else:
+            current_min_value = np.inf
+
+            for succ_state, succ_direction in succ_states:
+                if depth == 1:  # expanding leaves
+                    value = heuristic_function(succ_state)
+                else:
+                    value, direction = self.search(succ_state, depth - 1, not maximizing_player)
+
+                if value < current_min_value:
+                    current_min_value = value
+                    current_best_direction = succ_direction
+
+            assert current_best_direction != (0, 0)
+
+            return current_min_value, current_best_direction
 
 
 class AlphaBeta(SearchAlgos):

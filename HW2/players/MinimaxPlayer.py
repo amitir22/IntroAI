@@ -18,7 +18,6 @@ class PlayerState:
     MY_TURN = 0
     RIVAL_TURN = 1
 
-    direction_from_previous_state: Tuple[int, int]
     turn: int
     board: np.array  # matrix
     fruit_locations: Dict[Tuple[int, int], int]  # key: location, value: fruit_score
@@ -115,7 +114,7 @@ class Player(AbstractPlayer):
 
         self.current_state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=min(num_cols, num_rows),
                                          players_scores=players_scores, players_locations=players_locations,
-                                         player=self, turn=PlayerState.MY_TURN, direction_from_previous_state=(0, 0))
+                                         player=self, turn=PlayerState.MY_TURN)
         self.my_state_list.append(self.current_state)
 
     def make_move(self, time_limit, players_score):
@@ -128,6 +127,7 @@ class Player(AbstractPlayer):
         """
         # updating scores
         self.current_state.my_score, self.current_state.rival_score = players_score
+        self.current_state.turn = PlayerState.MY_TURN
 
         # setting up variables for the anytime-minimax
         should_continue_to_next_iteration = True
@@ -143,11 +143,16 @@ class Player(AbstractPlayer):
             last_minimax_value, last_best_move = self.search_algo.search(self.current_state, current_depth, True)
             tock = time.time()
 
+            # todo: remove
+            assert last_best_move not in [(0, 0), None]
+            res = Player.is_move_valid(self.current_state.board, self.current_state.my_loc, last_best_move)
+
             # time management
             time_diff = tock - tick
             time_left -= time_diff
 
-            is_there_no_time_for_next_iteration = time_left < self.BRANCHING_FACTOR * time_diff
+            is_there_no_time_for_next_iteration = time_left < self.BRANCHING_FACTOR * time_diff or \
+                                                  time_left <= 0.2 * time_limit
 
             if is_there_no_time_for_next_iteration:
                 should_continue_to_next_iteration = False
@@ -162,12 +167,15 @@ class Player(AbstractPlayer):
         # updating the board in the next state
         did_move = Player.perform_move(next_state, PlayerState.MY_TURN, last_best_move)
 
+        # todo: remove
         assert did_move
-
-        next_state.direction_from_previous_state = last_best_move
 
         self.current_state = next_state
         self.my_state_list.append((self.current_state, last_minimax_value, last_best_move))
+
+        # todo: remove
+        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, '
+              f'scores: player1: {self.current_state.my_score} ,player2: {self.current_state.rival_score}')
 
         return last_best_move
 
@@ -178,8 +186,13 @@ class Player(AbstractPlayer):
         output:
             :return: None
         """
-        self.current_state.board[pos] = Player.BLOCK_CELL
+
+        if pos in self.current_state.fruit_locations and self.current_state.fruits_turns_to_live > 0:
+            self.current_state.rival_score += self.current_state.board[pos]
+            del self.current_state.fruit_locations[pos]
+
         self.current_state.rival_loc = pos
+        self.current_state.board[pos] = Player.BLOCK_CELL
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -246,12 +259,15 @@ class Player(AbstractPlayer):
 
     @staticmethod
     def successor_states_of(state: PlayerState):
+        """
+        :param state: the state we expand
+        :return: tuple (a successor state, the direction to the successor)
+        """
+        successor_states = []
+
         for direction in state.player.directions:
             next_state = state.duplicate()
 
-            next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
-
-            next_state.direction_from_previous_state = direction
             next_state.fruits_turns_to_live -= 1
 
             if Player.perform_move(next_state, next_state.turn, direction):
@@ -264,13 +280,17 @@ class Player(AbstractPlayer):
 
                 next_state.board[new_loc] = Player.BLOCK_CELL
 
-                yield next_state
+                successor_states.append((next_state, direction))
+
+                next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
+
+        return successor_states
 
     @staticmethod
     def heuristic_function(state: PlayerState):
         a = 2  # todo: change
 
-        my_row, my_col = state.my_loc
+        my_row, my_col = state.players_locations[state.turn]
 
         # todo: consider refactor to a single loop to reduce calculation time
         locations_to_scan = [state.board[(row, col)]
