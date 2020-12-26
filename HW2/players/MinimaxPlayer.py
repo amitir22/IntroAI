@@ -98,11 +98,17 @@ class Player(AbstractPlayer):
         output:
             :return: None
         """
-        num_rows = len(board)
-        num_cols = len(board[0])
+        self.num_rows = len(board)
+        self.num_cols = len(board[0])
 
-        my_loc = [(i, j) for i in range(num_rows) for j in range(num_cols) if board[i][j] == self.P1_CELL][0]
-        rival_loc = [(i, j) for i in range(num_rows) for j in range(num_cols) if board[i][j] == self.P2_CELL][0]
+        my_loc = [(i, j)
+                  for i in range(self.num_rows)
+                  for j in range(self.num_cols)
+                  if board[i][j] == self.P1_CELL][0]
+        rival_loc = [(i, j)
+                     for i in range(self.num_rows)
+                     for j in range(self.num_cols)
+                     if board[i][j] == self.P2_CELL][0]
 
         assert None not in [my_loc, rival_loc]
 
@@ -112,7 +118,9 @@ class Player(AbstractPlayer):
         players_scores = {PlayerState.MY_TURN: 0, PlayerState.RIVAL_TURN: 0}
         players_locations = {PlayerState.MY_TURN: my_loc, PlayerState.RIVAL_TURN: rival_loc}
 
-        self.current_state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=min(num_cols, num_rows),
+        fruits_turns_to_live = min(self.num_rows, self.num_cols)
+
+        self.current_state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=fruits_turns_to_live,
                                          players_scores=players_scores, players_locations=players_locations,
                                          player=self, turn=PlayerState.MY_TURN)
         self.my_state_list.append(self.current_state)
@@ -136,6 +144,10 @@ class Player(AbstractPlayer):
         last_best_move = (0, 0)
         time_left = time_limit
 
+        num_zeros_on_board = sum([int(self.current_state.board[(i, j)] == 0)
+                                  for i in range(self.num_rows)
+                                  for j in range(self.num_cols)])
+
         # executing minimax in anytime-contact
         while should_continue_to_next_iteration:
             tick = time.time()
@@ -154,7 +166,9 @@ class Player(AbstractPlayer):
             is_there_no_time_for_next_iteration = time_left < self.BRANCHING_FACTOR * time_diff or \
                                                   time_left <= 0.2 * time_limit
 
-            if is_there_no_time_for_next_iteration:
+            is_depth_covers_all_cells = current_depth >= num_zeros_on_board
+
+            if is_there_no_time_for_next_iteration or is_depth_covers_all_cells:
                 should_continue_to_next_iteration = False
 
         # updating next state and returning the next move
