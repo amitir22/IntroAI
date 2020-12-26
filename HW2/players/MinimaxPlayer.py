@@ -249,7 +249,12 @@ class Player(AbstractPlayer):
         player_loc = state.players_locations[player_turn]
 
         if Player.is_move_valid(state.board, player_loc, direction):
-            state.players_locations[player_turn] = utils.tup_add(player_loc, direction)
+            new_loc = utils.tup_add(player_loc, direction)
+
+            if new_loc in state.fruit_locations:
+                state.players_scores[player_turn] += state.board[new_loc]
+
+            state.players_locations[player_turn] = new_loc
             state.board[player_loc] = Player.BLOCK_CELL
 
             return True
@@ -302,7 +307,7 @@ class Player(AbstractPlayer):
 
     @staticmethod
     def heuristic_function(state: PlayerState):
-        a = 2  # todo: change
+        a = 1  # todo: change
 
         my_row, my_col = state.players_locations[state.turn]
 
