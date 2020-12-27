@@ -2,7 +2,6 @@
 MiniMax Player
 """
 from typing import Tuple, List, Dict
-
 from players.AbstractPlayer import AbstractPlayer
 from SearchAlgos import MiniMax
 import time
