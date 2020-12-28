@@ -82,11 +82,8 @@ class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
         # keep the inheritance of the parent's (AbstractPlayer) __init__()
         AbstractPlayer.__init__(self, game_time, penalty_score)
-        self.game_time = game_time
-        self.penalty_score = penalty_score
         self.search_algo = AlphaBeta(Player.heuristic_function, Player.successor_states_of,
                                      Player.perform_move, Player.is_goal_state)
-        self.directions = utils.get_directions()
         self.my_state_list = []
 
     def set_game_params(self, board: np.array):
