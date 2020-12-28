@@ -213,7 +213,7 @@ class Player(AbstractPlayer):
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
     @staticmethod
-    def is_move_valid(board: np.array, target_location: tuple):
+    def is_move_valid(board: np.array, target_location: Tuple[int, int]):
         if Player.is_location_in_board(board, target_location):
             is_not_blocked = board[target_location] != Player.BLOCK_CELL
 
@@ -222,7 +222,7 @@ class Player(AbstractPlayer):
             return False
 
     @staticmethod
-    def perform_move(state: PlayerState, player_turn: int, target_location: tuple):
+    def perform_move(state: PlayerState, player_turn: int, target_location: Tuple[int, int]):
         """
         input:
             :param state: the state which we update
