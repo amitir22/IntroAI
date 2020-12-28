@@ -123,7 +123,6 @@ class Player(AbstractPlayer):
         self.current_state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=fruits_turns_to_live,
                                          players_scores=players_scores, players_locations=players_locations,
                                          player=self, turn=PlayerState.MY_TURN)
-        self.my_state_list.append(self.current_state)
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -157,7 +156,6 @@ class Player(AbstractPlayer):
 
             # todo: remove
             assert last_best_move not in [(0, 0), None]
-            res = Player.is_move_valid(self.current_state.board, self.current_state.my_loc, last_best_move)
 
             # time management
             time_diff = tock - tick
@@ -173,21 +171,16 @@ class Player(AbstractPlayer):
 
         # updating next state and returning the next move
         self.current_state.fruits_turns_to_live -= 1
-
-        next_state = self.current_state.duplicate()
+        next_location = utils.tup_add(self.current_state.my_loc, last_best_move)
 
         assert last_best_move != (0, 0)
 
-        # updating the board in the next state
-        did_move = Player.perform_move(next_state, PlayerState.MY_TURN, last_best_move)
-
-        # todo: remove
-        assert did_move
-
-        self.current_state = next_state
+        # updating the board in the next state and moving the current_state to point at the next
+        self.current_state = Player.perform_move(self.current_state, PlayerState.MY_TURN, next_location)
         self.my_state_list.append((self.current_state, last_minimax_value, last_best_move))
 
         # todo: remove
+        print('alpha-beta:')
         print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, '
               f'scores: player1: {self.current_state.my_score} ,player2: {self.current_state.rival_score}')
 
@@ -200,13 +193,7 @@ class Player(AbstractPlayer):
         output:
             :return: None
         """
-
-        if pos in self.current_state.fruit_locations and self.current_state.fruits_turns_to_live > 0:
-            self.current_state.rival_score += self.current_state.board[pos]
-            del self.current_state.fruit_locations[pos]
-
-        self.current_state.rival_loc = pos
-        self.current_state.board[pos] = Player.BLOCK_CELL
+        self.current_state = Player.perform_move(self.current_state, PlayerState.RIVAL_TURN, pos)
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -226,39 +213,36 @@ class Player(AbstractPlayer):
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
     @staticmethod
-    def is_move_valid(board: np.array, location: tuple, direction: tuple):
-        new_loc = utils.tup_add(location, direction)
-
-        if Player.is_location_in_board(board, new_loc):
-            is_not_blocked = board[new_loc] != Player.BLOCK_CELL
+    def is_move_valid(board: np.array, target_location: tuple):
+        if Player.is_location_in_board(board, target_location):
+            is_not_blocked = board[target_location] != Player.BLOCK_CELL
 
             return is_not_blocked
         else:
             return False
 
     @staticmethod
-    def perform_move(state: PlayerState, player_turn: int, direction: tuple):
+    def perform_move(state: PlayerState, player_turn: int, target_location: tuple):
         """
         input:
             :param state: the state which we update
             :param player_turn: if 0 -> moving my player, else (=1) -> moving rival player
-            :param direction: the direction of the move
+            :param target_location: the target of the move
         output:
-            :return: True if move successful, False if illegal move (blocked or out of bounds)
+            :return: the updated state. None if the move given was not valid
         """
-        player_loc = state.players_locations[player_turn]
+        next_state = state.duplicate()
 
-        if Player.is_move_valid(state.board, player_loc, direction):
-            new_loc = utils.tup_add(player_loc, direction)
+        if Player.is_move_valid(next_state.board, target_location):
+            if target_location in next_state.fruit_locations and state.fruits_turns_to_live > 0:
+                del next_state.fruit_locations[target_location]
+                next_state.players_scores[player_turn] += next_state.board[target_location]
 
-            if new_loc in state.fruit_locations:
-                state.players_scores[player_turn] += state.board[new_loc]
+            next_state.players_locations[player_turn] = target_location
+            next_state.board[target_location] = Player.BLOCK_CELL
 
-            state.players_locations[player_turn] = new_loc
-            state.board[player_loc] = Player.BLOCK_CELL
-
-            return True
-        return False
+            return next_state
+        return None
 
     @staticmethod
     def is_goal_state(state: PlayerState):
@@ -268,10 +252,13 @@ class Player(AbstractPlayer):
 
         # checking if i'm blocked
         for direction in directions:
-            if am_i_blocked and Player.is_move_valid(state.board, state.my_loc, direction):
+            my_new_loc = utils.tup_add(state.my_loc, direction)
+            rival_new_loc = utils.tup_add(state.rival_loc, direction)
+
+            if am_i_blocked and Player.is_move_valid(state.board, my_new_loc):
                 am_i_blocked = False
 
-            if is_rival_blocked and Player.is_move_valid(state.board, state.rival_loc, direction):
+            if is_rival_blocked and Player.is_move_valid(state.board, rival_new_loc):
                 is_rival_blocked = False
 
         return am_i_blocked or is_rival_blocked
@@ -285,29 +272,21 @@ class Player(AbstractPlayer):
         successor_states = []
 
         for direction in state.player.directions:
-            next_state = state.duplicate()
+            player_old_loc = state.players_locations[state.turn]
+            player_new_loc = utils.tup_add(player_old_loc, direction)
 
-            next_state.fruits_turns_to_live -= 1
+            if Player.is_move_valid(state.board, player_new_loc):
+                next_state = Player.perform_move(state, state.turn, player_new_loc)
 
-            if Player.perform_move(next_state, next_state.turn, direction):
-                new_loc = next_state.players_locations[next_state.turn]
-
-                if new_loc in state.fruit_locations:
-                    del next_state.fruit_locations[new_loc]
-
-                    next_state.players_scores[next_state.turn] += next_state.board[new_loc]
-
-                next_state.board[new_loc] = Player.BLOCK_CELL
-
-                successor_states.append((next_state, direction))
-
+                next_state.fruits_turns_to_live -= 1
                 next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
+                successor_states.append((next_state, direction))
 
         return successor_states
 
     @staticmethod
     def heuristic_function(state: PlayerState):
-        a = 1  # todo: change
+        a = 2  # todo: change
 
         my_row, my_col = state.players_locations[state.turn]
 
@@ -330,7 +309,7 @@ class Player(AbstractPlayer):
             my_fruit_dist = Player.m_dist(state.my_loc, fruit_loc)
             rival_fruit_dist = Player.m_dist(state.rival_loc, fruit_loc)
 
-            is_fruit_viable = my_fruit_dist < rival_fruit_dist and my_fruit_dist <= state.fruits_turns_to_live
+            is_fruit_viable = my_fruit_dist <= rival_fruit_dist and my_fruit_dist < state.fruits_turns_to_live
 
             if is_fruit_viable and (my_fruit_dist, fruit_score) < (current_min_fruit_dist, current_min_fruit_score):
                 current_min_fruit_dist, current_min_fruit_score = my_fruit_dist, fruit_score
@@ -343,7 +322,7 @@ class Player(AbstractPlayer):
         for direction in state.player.directions:
             new_loc = utils.tup_add(state.my_loc, direction)
 
-            if Player.is_location_in_board(state.board, new_loc) and state.board[new_loc] != Player.BLOCK_CELL:
+            if Player.is_move_valid(state.board, new_loc):
                 is_not_hole_state = 1
                 break
 

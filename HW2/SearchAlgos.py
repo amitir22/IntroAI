@@ -44,22 +44,27 @@ class MiniMax(SearchAlgos):
         succ_states = self.succ(state)
 
         if len(succ_states) == 0:  # goal state
+            other_state = state.duplicate()
+            other_state.turn = 1 - state.turn
+            other_player_succ_states = self.succ(other_state)
+
             prize = 1000000
+            score_diff = state.my_score - state.rival_score
+
+            if len(other_player_succ_states) == 0:
+                return prize * score_diff, None
 
             if maximizing_player:
-                score_diff = state.my_score - state.rival_score - state.player.penalty_score
+                score_diff -= state.player.penalty_score
             else:
-                score_diff = state.my_score - state.rival_score + state.player.penalty_score
+                score_diff += state.player.penalty_score
 
-            if score_diff > 0:
-                return prize, None
-            else:
-                return -prize, None
+            return prize * score_diff, None
 
         current_best_direction = (0, 0)
 
         if maximizing_player:
-            current_max_value = -np.inf
+            current_max_value = ALPHA_VALUE_INIT
 
             for succ_state, succ_direction in succ_states:
                 if depth == 1:  # expanding leaves
@@ -75,7 +80,7 @@ class MiniMax(SearchAlgos):
 
             return current_max_value, current_best_direction
         else:
-            current_min_value = np.inf
+            current_min_value = BETA_VALUE_INIT
 
             for succ_state, succ_direction in succ_states:
                 if depth == 1:  # expanding leaves
@@ -110,48 +115,63 @@ class AlphaBeta(SearchAlgos):
         succ_states = self.succ(state)
 
         if len(succ_states) == 0:  # goal state
+            other_state = state.duplicate()
+            other_state.turn = 1 - state.turn
+            other_player_succ_states = self.succ(other_state)
+
             prize = 1000000
+            score_diff = state.my_score - state.rival_score
+
+            if len(other_player_succ_states) == 0:
+                return prize * score_diff, None
 
             if maximizing_player:
-                score_diff = state.my_score - state.rival_score - state.player.penalty_score
+                score_diff -= state.player.penalty_score
             else:
-                score_diff = state.my_score - state.rival_score + state.player.penalty_score
+                score_diff += state.player.penalty_score
 
-            if score_diff > 0:
-                return prize, None
-            else:
-                return -prize, None
+            return prize * score_diff, None
 
         current_best_direction = (0, 0)
 
         if maximizing_player:
-            current_max_value = -np.inf
+            current_max_value = ALPHA_VALUE_INIT
 
             for succ_state, succ_direction in succ_states:
                 if depth == 1:  # expanding leaves
                     value = heuristic_function(succ_state)
                 else:
-                    value, direction = self.search(succ_state, depth - 1, not maximizing_player)
+                    alpha = max(alpha, current_max_value)
+                    value, direction = self.search(succ_state, depth - 1, not maximizing_player,
+                                                   alpha=alpha, beta=beta)
 
-                if value > current_max_value:
+                if value >= current_max_value:
                     current_max_value = value
                     current_best_direction = succ_direction
+
+                if value >= beta or alpha >= beta:
+                    return np.inf, succ_direction
 
             assert current_best_direction != (0, 0)
 
             return current_max_value, current_best_direction
         else:
-            current_min_value = np.inf
+            current_min_value = BETA_VALUE_INIT
 
             for succ_state, succ_direction in succ_states:
                 if depth == 1:  # expanding leaves
                     value = heuristic_function(succ_state)
                 else:
-                    value, direction = self.search(succ_state, depth - 1, not maximizing_player)
+                    beta = min(beta, current_min_value)
+                    value, direction = self.search(succ_state, depth - 1, not maximizing_player,
+                                                   alpha=alpha, beta=beta)
 
-                if value < current_min_value:
+                if value <= current_min_value:
                     current_min_value = value
                     current_best_direction = succ_direction
+
+                if value <= alpha or beta <= alpha:
+                    return -np.inf, succ_direction
 
             assert current_best_direction != (0, 0)
 
