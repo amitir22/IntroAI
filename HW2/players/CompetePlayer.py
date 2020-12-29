@@ -87,7 +87,7 @@ class Player(AbstractPlayer):
                                      Player.perform_move)
         self.my_state_list = []
         self.game_time_left = game_time
-        self.phase_to_phase_factor = {1: 1/4, 3: 1/4, 2: 1/2}
+        self.phase_to_phase_factor = {1: 1/2, 3: 1/2, 2: 2}
 
     def set_game_params(self, board: np.array):
         """Set the game parameters needed for this player.
@@ -317,16 +317,23 @@ class Player(AbstractPlayer):
 
         my_row, my_col = state.players_locations[state.turn]
 
-        # todo: consider refactor to a single loop to reduce calculation time
-        locations_to_scan = [state.board[(row, col)]
-                             for row in range(my_row - a, my_row + a + 1)
-                             for col in range(my_col - a, my_col + a + 1)
-                             if Player.is_location_in_board(state.board, (row, col)) and (row, col) != (my_row, my_col)]
+        score_available_cells = 1
+        score_blocked_cells = 1
 
-        # todo: check if need to add '+1' in previous players
-        score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0]) + 1
-        score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0]) + 1
-        # todo: end-todos
+        for row in range(my_row - a, my_row + a + 1):
+            for col in range(my_col - a, my_col + a + 1):
+                if (row, col) != (my_row, my_col):
+                    if Player.is_location_in_board(state.board, (row, col)):
+                        cell_value = state.board[(row, col)]
+
+                        if cell_value > 0:
+                            score_available_cells += cell_value
+                        elif cell_value < 0:
+                            score_blocked_cells -= cell_value
+                        else:  # cell_value = 0
+                            score_available_cells += 1
+                    else:
+                        score_blocked_cells += 1
 
         current_min_fruit_dist = np.inf
         current_min_fruit_score = 0
@@ -343,16 +350,18 @@ class Player(AbstractPlayer):
                 current_min_fruit_dist, current_min_fruit_score = my_fruit_dist, fruit_score
 
         score_closest_fruit_m_dist = current_min_fruit_dist
-        score_adversary_m_dist = Player.m_dist(state.my_loc, state.rival_loc)
+        score_adversary_m_dist = Player.m_dist(state.my_loc, state.rival_loc) + \
+                                 np.linalg.norm(np.array(state.my_loc) - np.array(state.rival_loc))
 
-        is_not_hole_state = 0
+        possible_loc1 = my_row, my_col + 1
+        possible_loc2 = my_row, my_col - 1
+        possible_loc3 = my_row + 1, my_col
+        possible_loc4 = my_row - 1, my_col
 
-        for direction in state.player.directions:
-            new_loc = utils.tup_add(state.my_loc, direction)
-
-            if Player.is_move_valid(state.board, new_loc):
-                is_not_hole_state = 1
-                break
+        is_not_hole_state = int(Player.is_move_valid(state.board, possible_loc1) or
+                                Player.is_move_valid(state.board, possible_loc2) or
+                                Player.is_move_valid(state.board, possible_loc3) or
+                                Player.is_move_valid(state.board, possible_loc4))
 
         # todo: check if need to add '+1' in previous players
         return is_not_hole_state * ((score_available_cells / score_blocked_cells) /
