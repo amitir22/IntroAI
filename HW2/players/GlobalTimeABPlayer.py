@@ -84,10 +84,10 @@ class Player(AbstractPlayer):
         # keep the inheritance of the parent's (AbstractPlayer) __init__()
         AbstractPlayer.__init__(self, game_time, penalty_score)
         self.search_algo = AlphaBeta(Player.heuristic_function, Player.successor_states_of,
-                                     Player.perform_move, Player.is_goal_state)
+                                     Player.perform_move)
         self.my_state_list = []
         self.game_time_left = game_time
-        self.phase_to_phase_factor = {1: 1/4, 3: 1/4, 2: 1/2}
+        self.phase_to_phase_factor = {1: 1/2, 3: 1/2, 2: 2}
 
     def set_game_params(self, board: np.array):
         """Set the game parameters needed for this player.
@@ -141,7 +141,6 @@ class Player(AbstractPlayer):
         current_depth = 0
         last_minimax_value = 0
         last_best_move = (0, 0)
-        time_left = time_limit
         num_blocks_on_board = sum([int(self.current_state.board[(i, j)] == self.BLOCK_CELL)
                                   for i in range(self.num_rows)
                                   for j in range(self.num_cols)])
@@ -160,6 +159,8 @@ class Player(AbstractPlayer):
 
             phase_factor = self.phase_to_phase_factor[phase]
             time_limit *= phase_factor
+
+        time_left = time_limit
 
         while should_continue_to_next_iteration:
             tick = time.time()
@@ -227,11 +228,6 @@ class Player(AbstractPlayer):
         self.current_state.fruit_locations = fruits_on_board_dict
 
     ########## helper functions in class ##########
-    #TODO: add here helper functions in class, if needed
-
-
-    ########## helper functions for AlphaBeta algorithm ##########
-    #TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
 
     @staticmethod
     def is_move_valid(board: np.array, target_location: Tuple[int, int]):
@@ -241,6 +237,24 @@ class Player(AbstractPlayer):
             return is_not_blocked
         else:
             return False
+
+    @staticmethod
+    def is_location_in_board(board: np.array, location: Tuple[int, int]):
+        num_rows = len(board)
+        num_cols = len(board[0])
+
+        row, col = location
+
+        return 0 <= row < num_rows and 0 <= col < num_cols
+
+    @staticmethod
+    def m_dist(loc1: Tuple[int, int], loc2: Tuple[int, int]):
+        row1, col1 = loc1
+        row2, col2 = loc2
+
+        return np.abs(row2 - row1) + np.abs(col2 - col1)
+
+    ########## helper functions for AlphaBeta algorithm ##########
 
     @staticmethod
     def perform_move(state: PlayerState, player_turn: int, target_location: Tuple[int, int]):
@@ -264,25 +278,6 @@ class Player(AbstractPlayer):
 
             return next_state
         return None
-
-    @staticmethod
-    def is_goal_state(state: PlayerState):
-        directions = state.player.directions
-        am_i_blocked = True
-        is_rival_blocked = True
-
-        # checking if i'm blocked
-        for direction in directions:
-            my_new_loc = utils.tup_add(state.my_loc, direction)
-            rival_new_loc = utils.tup_add(state.rival_loc, direction)
-
-            if am_i_blocked and Player.is_move_valid(state.board, my_new_loc):
-                am_i_blocked = False
-
-            if is_rival_blocked and Player.is_move_valid(state.board, rival_new_loc):
-                is_rival_blocked = False
-
-        return am_i_blocked or is_rival_blocked
 
     @staticmethod
     def successor_states_of(state: PlayerState):
@@ -317,9 +312,10 @@ class Player(AbstractPlayer):
                              for col in range(my_col - a, my_col + a + 1)
                              if Player.is_location_in_board(state.board, (row, col)) and (row, col) != (my_row, my_col)]
 
-        score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0])
-        score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0])
-        # todo: end-todo
+        # todo: check if need to add '+1' in previous players
+        score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0]) + 1
+        score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0]) + 1
+        # todo: end-todos
 
         current_min_fruit_dist = np.inf
         current_min_fruit_score = 0
@@ -347,21 +343,6 @@ class Player(AbstractPlayer):
                 is_not_hole_state = 1
                 break
 
+        # todo: check if need to add '+1' in previous players
         return is_not_hole_state * ((score_available_cells / score_blocked_cells) /
-                                    (score_closest_fruit_m_dist + score_adversary_m_dist))
-
-    @staticmethod
-    def is_location_in_board(board: np.array, location: Tuple[int, int]):
-        num_rows = len(board)
-        num_cols = len(board[0])
-
-        row, col = location
-
-        return 0 <= row < num_rows and 0 <= col < num_cols
-
-    @staticmethod
-    def m_dist(loc1: Tuple[int, int], loc2: Tuple[int, int]):
-        row1, col1 = loc1
-        row2, col2 = loc2
-
-        return np.abs(row2 - row1) + np.abs(col2 - col1)
+                                    (score_closest_fruit_m_dist + score_adversary_m_dist + 1))

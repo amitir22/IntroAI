@@ -21,9 +21,6 @@ class SearchAlgos:
         self.succ = succ
         self.perform_move = perform_move
 
-        # TODO: make sure if need to delete
-        self.goal = goal
-
     def search(self, state, depth, maximizing_player):
         pass
 
