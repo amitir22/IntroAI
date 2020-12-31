@@ -1,8 +1,8 @@
 """
 MiniMax Player
 """
-from typing import Tuple, List, Dict
 from players.AbstractPlayer import AbstractPlayer
+from typing import Tuple, List, Dict
 from SearchAlgos import MiniMax
 import time
 import numpy as np

@@ -62,6 +62,7 @@ class PlayerState:
 
 
 class Player(AbstractPlayer):
+    NAME = 'Agent-007'
     BRANCHING_FACTOR = 4
     BLOCK_CELL = -1
     P1_CELL = 1

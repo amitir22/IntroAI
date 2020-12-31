@@ -1,8 +1,8 @@
 """
 MiniMax Player with AlphaBeta pruning and global time
 """
-from typing import Tuple, List, Dict
 from players.AbstractPlayer import AbstractPlayer
+from typing import Tuple, List, Dict
 from SearchAlgos import AlphaBeta
 import time
 import numpy as np
