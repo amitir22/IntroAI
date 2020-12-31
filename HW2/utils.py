@@ -2,9 +2,6 @@ import operator
 import numpy as np
 import os
 
-#TODO: edit the alpha and beta initialization values for AlphaBeta algorithm.
-# instead of 'None', write the real initialization value, learned in class.
-# hint: you can use np.inf
 ALPHA_VALUE_INIT = -np.inf
 BETA_VALUE_INIT = np.inf
 
@@ -47,4 +44,3 @@ def get_board_from_csv(board_file_name):
     start_player_2 = (start_player_2[0][0], start_player_2[1][0])
 
     return [(i, j), blocks, [start_player_1, start_player_2]]
-    

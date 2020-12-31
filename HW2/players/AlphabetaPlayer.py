@@ -98,14 +98,10 @@ class Player(AbstractPlayer):
         self.num_rows = len(board)
         self.num_cols = len(board[0])
 
-        my_loc = [(i, j)
-                  for i in range(self.num_rows)
-                  for j in range(self.num_cols)
-                  if board[i][j] == self.P1_CELL][0]
-        rival_loc = [(i, j)
-                     for i in range(self.num_rows)
-                     for j in range(self.num_cols)
-                     if board[i][j] == self.P2_CELL][0]
+        my_loc = np.where(board == self.P1_CELL)
+        my_loc = my_loc[0][0], my_loc[1][0]
+        rival_loc = np.where(board == self.P2_CELL)
+        rival_loc = rival_loc[0][0], rival_loc[1][0]
 
         assert None not in [my_loc, rival_loc]
 
