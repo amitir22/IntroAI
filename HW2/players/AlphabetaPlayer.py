@@ -125,6 +125,9 @@ class Player(AbstractPlayer):
         output:
             :return: direction: tuple, specifying the Player's movement, chosen from self.directions
         """
+        # starting the clock
+        tick = time.time()
+
         # updating scores
         self.current_state.my_score, self.current_state.rival_score = players_score
         self.current_state.turn = PlayerState.MY_TURN
@@ -136,26 +139,25 @@ class Player(AbstractPlayer):
         last_best_move = (0, 0)
         time_left = time_limit
 
-        num_zeros_on_board = sum([int(self.current_state.board[(i, j)] == 0)
-                                  for i in range(self.num_rows)
-                                  for j in range(self.num_cols)])
+        num_blocks_on_board = len(np.where(self.current_state.board == self.BLOCK_CELL))
+        num_zeros_on_board = self.num_rows * self.num_cols - num_blocks_on_board
 
         # executing minimax in anytime-contact
         while should_continue_to_next_iteration:
-            tick = time.time()
             current_depth += 1
             last_minimax_value, last_best_move = self.search_algo.search(self.current_state, current_depth, True)
-            tock = time.time()
 
             # todo: remove
             assert last_best_move not in [(0, 0), None]
 
             # time management
+            tock = time.time()
             time_diff = tock - tick
             time_left -= time_diff
+            tick = time.time()
 
             is_there_no_time_for_next_iteration = time_left < self.BRANCHING_FACTOR * time_diff or \
-                                                  time_left <= 0.2 * time_limit
+                                                  time_left <= 0.1 * time_limit
 
             is_depth_covers_all_cells = current_depth >= num_zeros_on_board
 
@@ -278,16 +280,23 @@ class Player(AbstractPlayer):
 
         my_row, my_col = state.players_locations[state.turn]
 
-        # todo: consider refactor to a single loop to reduce calculation time
-        locations_to_scan = [state.board[(row, col)]
-                             for row in range(my_row - a, my_row + a + 1)
-                             for col in range(my_col - a, my_col + a + 1)
-                             if Player.is_location_in_board(state.board, (row, col)) and (row, col) != (my_row, my_col)]
+        score_available_cells = 1
+        score_blocked_cells = 1
 
-        # todo: check if need to add '+1' in previous players
-        score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0]) + 1
-        score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0]) + 1
-        # todo: end-todos
+        for row in range(my_row - a, my_row + a + 1):
+            for col in range(my_col - a, my_col + a + 1):
+                if (row, col) != (my_row, my_col):
+                    if Player.is_location_in_board(state.board, (row, col)):
+                        cell_value = state.board[(row, col)]
+
+                        if cell_value > 0:
+                            score_available_cells += cell_value
+                        elif cell_value < 0:
+                            score_blocked_cells -= cell_value
+                        else:  # cell_value = 0
+                            score_available_cells += 1
+                    else:
+                        score_blocked_cells += 1
 
         current_min_fruit_dist = np.inf
         current_min_fruit_score = 0

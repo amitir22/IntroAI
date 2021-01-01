@@ -248,16 +248,23 @@ class Player(AbstractPlayer):
 
         my_row, my_col = state.players_locations[state.turn]
 
-        # todo: consider refactor to a single loop to reduce calculation time
-        locations_to_scan = [state.board[(row, col)]
-                             for row in range(my_row - a, my_row + a + 1)
-                             for col in range(my_col - a, my_col + a + 1)
-                             if Player.is_location_in_board(state.board, (row, col)) and (row, col) != (my_row, my_col)]
+        score_available_cells = 1
+        score_blocked_cells = 1
 
-        # todo: check if need to add '+1' in previous players
-        score_available_cells = sum([cell_value for cell_value in locations_to_scan if cell_value > 0]) + 1
-        score_blocked_cells = -sum([cell_value for cell_value in locations_to_scan if cell_value < 0]) + 1
-        # todo: end-todos
+        for row in range(my_row - a, my_row + a + 1):
+            for col in range(my_col - a, my_col + a + 1):
+                if (row, col) != (my_row, my_col):
+                    if Player.is_location_in_board(state.board, (row, col)):
+                        cell_value = state.board[(row, col)]
+
+                        if cell_value > 0:
+                            score_available_cells += cell_value
+                        elif cell_value < 0:
+                            score_blocked_cells -= cell_value
+                        else:  # cell_value = 0
+                            score_available_cells += 1
+                    else:
+                        score_blocked_cells += 1
 
         current_min_fruit_dist = np.inf
         current_min_fruit_score = 0

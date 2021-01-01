@@ -67,6 +67,7 @@ class Player(AbstractPlayer):
     BLOCK_CELL = -1
     P1_CELL = 1
     P2_CELL = 2
+    SQRT_2 = 2.0 ** 0.5
 
     game_time_left: float
     game_time: float
@@ -88,7 +89,7 @@ class Player(AbstractPlayer):
                                      Player.perform_move)
         self.my_state_list = []
         self.game_time_left = game_time
-        self.phase_to_phase_factor = {1: 1/2, 3: 1/2, 2: 2}
+        self.phase_to_phase_factor = {1: 1/self.SQRT_2, 3: 1/self.SQRT_2, 2: self.SQRT_2}
 
     def set_game_params(self, board: np.array):
         """Set the game parameters needed for this player.
@@ -131,6 +132,7 @@ class Player(AbstractPlayer):
         """
         # starting external timer to update the remaining game_time_left correctly
         make_move_start_time = time.time()
+        tick = time.time()
 
         # setting up variables for the anytime-minimax
         phase = None  # todo: remove
@@ -138,9 +140,8 @@ class Player(AbstractPlayer):
         current_depth = 0
         last_minimax_value = 0
         last_best_move = (0, 0)
-        num_blocks_on_board = sum([int(self.current_state.board[(i, j)] == self.BLOCK_CELL)
-                                  for i in range(self.num_rows)
-                                  for j in range(self.num_cols)])
+
+        num_blocks_on_board = len(np.where(self.current_state.board == self.BLOCK_CELL)[0])
         num_zeros_on_board = self.num_rows * self.num_cols - num_blocks_on_board
 
         # updating scores
@@ -160,20 +161,20 @@ class Player(AbstractPlayer):
         time_left = time_limit
 
         while should_continue_to_next_iteration:
-            tick = time.time()
             current_depth += 1
             last_minimax_value, last_best_move = self.search_algo.search(self.current_state, current_depth, True)
-            tock = time.time()
 
             # todo: remove
             assert last_best_move not in [(0, 0), None]
 
             # time management
+            tock = time.time()
             time_diff = tock - tick
             time_left -= time_diff
+            tick = time.time()
 
             is_there_no_time_for_next_iteration = time_left < self.BRANCHING_FACTOR * time_diff or \
-                                                  time_left <= 0.2 * time_limit
+                                                  time_left <= 0.1 * time_limit
 
             is_depth_covers_all_cells = current_depth >= num_zeros_on_board
 
