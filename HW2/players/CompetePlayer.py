@@ -62,7 +62,7 @@ class PlayerState:
 
 
 class Player(AbstractPlayer):
-    NAME = 'Agent-007'
+    NAME = 'Agent-SARS-CoV-007'
     BRANCHING_FACTOR = 4
     BLOCK_CELL = -1
     P1_CELL = 1
@@ -148,7 +148,7 @@ class Player(AbstractPlayer):
         self.current_state.my_score, self.current_state.rival_score = players_score
         self.current_state.turn = PlayerState.MY_TURN
 
-        time_limit = self.game_time_left / np.ceil(num_zeros_on_board / 2)
+        smart_time_limit = self.game_time_left / np.ceil(num_zeros_on_board / 2)
 
         # if game_time left is very low, calculate time naively
         if self.game_time_left > 0.1 * self.game_time:
@@ -156,9 +156,10 @@ class Player(AbstractPlayer):
             assert phase in [1, 2, 3]
 
             phase_factor = self.phase_to_phase_factor[phase]
-            time_limit *= phase_factor
+            smart_time_limit *= phase_factor
 
-        time_left = time_limit
+        final_time_limit = min(time_limit, smart_time_limit)
+        time_left = final_time_limit
 
         while should_continue_to_next_iteration:
             current_depth += 1
@@ -174,7 +175,7 @@ class Player(AbstractPlayer):
             tick = time.time()
 
             is_there_no_time_for_next_iteration = time_left < self.BRANCHING_FACTOR * time_diff or \
-                                                  time_left <= 0.1 * time_limit
+                                                  time_left <= 0.1 * final_time_limit
 
             is_depth_covers_all_cells = current_depth >= num_zeros_on_board
 
