@@ -1,9 +1,65 @@
 import operator
 import numpy as np
 import os
+import dataclasses
+import copy
+import players.AbstractPlayer
+from typing import Tuple, Dict
 
 ALPHA_VALUE_INIT = -np.inf
 BETA_VALUE_INIT = np.inf
+BRANCHING_FACTOR = 4
+BLOCK_CELL = -1
+P1_CELL = 1
+P2_CELL = 2
+MY_TURN = 0
+RIVAL_TURN = 1
+
+
+@dataclasses.dataclass(init=True)
+class PlayerState:
+    turn: int
+    board: np.array  # matrix
+    fruit_locations: Dict[Tuple[int, int], int]  # key: location, value: fruit_score
+    fruits_turns_to_live: int
+    players_locations: Dict[int, Tuple[int, int]]
+    players_scores: Dict[int, int]
+    player: players.AbstractPlayer
+
+    @property
+    def my_loc(self):
+        return self.players_locations[MY_TURN]
+
+    @my_loc.setter
+    def my_loc(self, value: Tuple[int, int]):
+        self.players_locations[MY_TURN] = value
+
+    @property
+    def rival_loc(self):
+        return self.players_locations[RIVAL_TURN]
+
+    @rival_loc.setter
+    def rival_loc(self, value: Tuple[int, int]):
+        self.players_locations[RIVAL_TURN] = value
+
+    @property
+    def my_score(self):
+        return self.players_scores[MY_TURN]
+
+    @my_score.setter
+    def my_score(self, value: int):
+        self.players_scores[MY_TURN] = value
+
+    @property
+    def rival_score(self):
+        return self.players_scores[RIVAL_TURN]
+
+    @rival_score.setter
+    def rival_score(self, value: int):
+        self.players_scores[RIVAL_TURN] = value
+
+    def duplicate(self):
+        return copy.deepcopy(self)
 
 
 def get_directions():
