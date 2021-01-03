@@ -81,7 +81,7 @@ class Player(AbstractPlayer):
         last_minimax_value = 0
         last_best_move = (0, 0)
 
-        num_blocks_on_board = len(np.where(self.current_state.board == BLOCK_CELL))
+        num_blocks_on_board = len(np.where(self.current_state.board == BLOCK_CELL)[0])
         num_zeros_on_board = self.num_rows * self.num_cols - num_blocks_on_board
 
         # updating scores

@@ -78,7 +78,7 @@ class Player(AbstractPlayer):
         last_best_move = (0, 0)
         time_left = time_limit
 
-        num_blocks_on_board = len(np.where(self.current_state.board == BLOCK_CELL))
+        num_blocks_on_board = len(np.where(self.current_state.board == BLOCK_CELL)[0])
         num_zeros_on_board = self.num_rows * self.num_cols - num_blocks_on_board
 
         # executing minimax in anytime-contact
