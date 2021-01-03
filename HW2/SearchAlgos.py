@@ -4,9 +4,6 @@ from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
 import numpy as np
 
 
-# TODO: you can import more modules, if needed
-
-
 class SearchAlgos:
     def __init__(self, utility, succ, perform_move, goal=None):
         """The constructor for all the search algos.
