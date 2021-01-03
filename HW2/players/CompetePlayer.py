@@ -338,7 +338,7 @@ class Player(AbstractPlayer):
         for row in range(num_rows):
             for col in range(num_cols):
                 loc = row, col
-                if board[loc] in [BLOCK_CELL, P2_CELL]:
+                if board[loc] in [BLOCK_CELL]:
                     g.remove_node(loc)
 
         my_loc_component = Player.get_component_contains_location(g, state.my_loc)
@@ -348,6 +348,7 @@ class Player(AbstractPlayer):
         rival_target_vertex = np.argmax(Player.m_dist_component_nodes(rival_loc_component, state.rival_loc))
 
         # todo: not good enough, because maybe i don't need to set my target so far away... maybe consider DFS-post-ord.
+        # idea: consider iterating over the nodes of odd-rank (rank is odd)
         my_longest_path = Player.get_longest_path(state.my_loc, my_loc_component, my_target_vertex)
         rival_longest_path = Player.get_longest_path(state.rival_loc, rival_loc_component, rival_target_vertex)
 

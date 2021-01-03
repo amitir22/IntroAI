@@ -3,7 +3,6 @@ import numpy as np
 import os
 import dataclasses
 import copy
-import players.AbstractPlayer
 from typing import Tuple, Dict
 
 ALPHA_VALUE_INIT = -np.inf
@@ -24,7 +23,7 @@ class PlayerState:
     fruits_turns_to_live: int
     players_locations: Dict[int, Tuple[int, int]]
     players_scores: Dict[int, int]
-    player: players.AbstractPlayer
+    player: object  # supposed to be a Player class but i can't really declare it here
 
     @property
     def my_loc(self):

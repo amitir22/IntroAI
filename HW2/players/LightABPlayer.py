@@ -84,6 +84,8 @@ class Player(AbstractPlayer):
         self.search_algo = AlphaBeta(Player.heuristic_function, Player.successor_states_of,
                                      Player.perform_move)
         self.my_state_list = []
+        self.penalty_score = penalty_score
+        self.game_time = game_time
 
     def set_game_params(self, board: np.array):
         """Set the game parameters needed for this player.
@@ -262,4 +264,4 @@ class Player(AbstractPlayer):
         if is_not_hole_state:
             return score
         else:
-            return score - Player.penalty_score
+            return score - state.player.penalty_score

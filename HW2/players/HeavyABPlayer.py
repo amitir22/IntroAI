@@ -61,7 +61,6 @@ class PlayerState:
 
 
 class Player(AbstractPlayer):
-    DEFAULT_DEPTH_SEARCH = 3
     BRANCHING_FACTOR = 4
     BLOCK_CELL = -1
     P1_CELL = 1
@@ -74,6 +73,7 @@ class Player(AbstractPlayer):
     num_rows: int
     num_cols: int
     directions: List[Tuple[int, int]]
+    depth: int
 
     # TODO: remove before submission. here for debugging purposes.
     my_state_list: List[Tuple[PlayerState, int, Tuple[int, int]]]
@@ -84,6 +84,8 @@ class Player(AbstractPlayer):
         self.search_algo = AlphaBeta(Player.heuristic_function, Player.successor_states_of,
                                      Player.perform_move)
         self.my_state_list = []
+        self.penalty_score = penalty_score
+        self.game_time = game_time
 
     def set_game_params(self, board: np.array):
         """Set the game parameters needed for this player.
@@ -128,7 +130,7 @@ class Player(AbstractPlayer):
         self.current_state.my_score, self.current_state.rival_score = players_score
         self.current_state.turn = PlayerState.MY_TURN
 
-        current_depth = self.DEFAULT_DEPTH_SEARCH
+        current_depth = self.depth
 
         minimax_value, best_move = self.search_algo.search(self.current_state, current_depth, True)
 
