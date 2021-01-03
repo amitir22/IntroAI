@@ -4,6 +4,9 @@ from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
 import numpy as np
 
 
+PRIZE = 1000000  # dollars
+
+
 class SearchAlgos:
     def __init__(self, utility, succ, perform_move, goal=None):
         """The constructor for all the search algos.
@@ -23,7 +26,6 @@ class SearchAlgos:
 
 
 class MiniMax(SearchAlgos):
-
     def search(self, state, depth, maximizing_player):
         """Start the MiniMax algorithm.
         input:
@@ -42,18 +44,17 @@ class MiniMax(SearchAlgos):
             other_state.turn = 1 - state.turn
             other_player_succ_states = self.succ(other_state)
 
-            prize = 1000000
             score_diff = state.my_score - state.rival_score
 
             if len(other_player_succ_states) == 0:
-                return prize * score_diff, None
+                return PRIZE * score_diff, None
 
             if maximizing_player:
                 score_diff -= state.player.penalty_score
             else:
                 score_diff += state.player.penalty_score
 
-            return prize * score_diff, None
+            return PRIZE * score_diff, None
 
         current_best_direction = (0, 0)
 
@@ -92,7 +93,6 @@ class MiniMax(SearchAlgos):
 
 
 class AlphaBeta(SearchAlgos):
-
     def search(self, state, depth, maximizing_player, alpha=ALPHA_VALUE_INIT, beta=BETA_VALUE_INIT):
         """Start the AlphaBeta algorithm.
         input:
@@ -113,18 +113,17 @@ class AlphaBeta(SearchAlgos):
             other_state.turn = 1 - state.turn
             other_player_succ_states = self.succ(other_state)
 
-            prize = 1000000
             score_diff = state.my_score - state.rival_score
 
             if len(other_player_succ_states) == 0:
-                return prize * score_diff, None
+                return PRIZE * score_diff, None
 
             if maximizing_player:
                 score_diff -= state.player.penalty_score
             else:
                 score_diff += state.player.penalty_score
 
-            return prize * score_diff, None
+            return PRIZE * score_diff, None
 
         current_best_direction = (0, 0)
 
