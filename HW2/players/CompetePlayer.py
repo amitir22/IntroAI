@@ -9,7 +9,6 @@ import numpy as np
 import networkx as nx
 import utils
 from utils import PlayerState, BRANCHING_FACTOR, BLOCK_CELL, P1_CELL, P2_CELL, MY_TURN, RIVAL_TURN
-# TODO: you can import more modules, if needed
 
 
 class Player(AbstractPlayer):
@@ -26,13 +25,10 @@ class Player(AbstractPlayer):
     directions: List[Tuple[int, int]]
     phase_to_phase_factor: Dict[int, float]
 
-    # TODO: remove before submission. here for debugging purposes.
-    my_state_list: List[Tuple[PlayerState, int, Tuple[int, int]]]
-
     def __init__(self, game_time, penalty_score):
         # keep the inheritance of the parent's (AbstractPlayer) __init__()
         AbstractPlayer.__init__(self, game_time, penalty_score)
-        self.search_algo = AlphaBeta(utils.heuristic_function, utils.sorted_successor_states_of,
+        self.search_algo = AlphaBeta(Player.contest_heuristic_function, utils.sorted_successor_states_of,
                                      utils.perform_move)
         self.my_state_list = []
         self.game_time_left = game_time
@@ -67,7 +63,7 @@ class Player(AbstractPlayer):
 
         self.current_state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=fruits_turns_to_live,
                                          players_scores=players_scores, players_locations=players_locations,
-                                         player=self, turn=MY_TURN)
+                                         player=self, turn=MY_TURN, penalty_score=self.penalty_score)
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -82,7 +78,7 @@ class Player(AbstractPlayer):
         tick = time.time()
 
         # setting up variables for the anytime-minimax
-        phase = None  # todo: remove
+        phase = None
         should_continue_to_next_iteration = True
         current_depth = 0
         last_minimax_value = 0
@@ -112,9 +108,6 @@ class Player(AbstractPlayer):
             current_depth += 1
             last_minimax_value, last_best_move = self.search_algo.search(self.current_state, current_depth, True)
 
-            # todo: remove
-            assert last_best_move not in [(0, 0), None]
-
             # time management
             tock = time.time()
             time_diff = tock - tick
@@ -137,13 +130,12 @@ class Player(AbstractPlayer):
 
         # updating the board in the next state and moving the current_state to point at the next
         self.current_state = utils.perform_move(self.current_state, MY_TURN, next_location)
-        self.my_state_list.append((self.current_state, last_minimax_value, last_best_move))
 
         # todo: remove
         if phase is None:
             phase = 'no phase computed'
         print('contest player:')
-        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, '
+        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, minimax value: {last_minimax_value}'
               f'scores: player1: {self.current_state.my_score} ,player2: {self.current_state.rival_score}, '
               f'phase: {phase}')
 
@@ -174,20 +166,6 @@ class Player(AbstractPlayer):
         self.current_state.fruit_locations = fruits_on_board_dict
 
     ########## helper functions in class ##########
-
-    ########## helper functions for the search algorithm ##########
-
-    @staticmethod
-    def get_max_path_lengths(state: PlayerState):
-        g = Player.build_graph_from_state(state)
-
-        my_loc_component = Player.get_component_contains_location(g, state.my_loc)
-        rival_loc_component = Player.get_component_contains_location(g, state.rival_loc)
-
-        my_longest_path_len = Player.dfs_get_longest_path(my_loc_component, state.my_loc)
-        rival_longest_path_len = Player.dfs_get_longest_path(rival_loc_component, state.rival_loc)
-
-        return my_longest_path_len, rival_longest_path_len
 
     @staticmethod
     def build_graph_from_state(state: PlayerState):
@@ -245,9 +223,59 @@ class Player(AbstractPlayer):
 
         return max(list_of_successor_path_length)
 
+    ########## helper functions for the search algorithm ##########
 
-# TODO: delete
-def main():
+    @staticmethod
+    def contest_heuristic_function(state: PlayerState):
+        """
+        Calculating heuristic value of a given state for the contest.
+        :param state: The state to evaltuate
+        :return: The h-value (heurisitc)
+        """
+        score_diff = state.my_score - state.rival_score
+        is_hole = utils.is_hole_state(state)
+
+        if is_hole:
+            return score_diff - state.penalty_score
+
+        # translating the problem to a graph problem
+        g = Player.build_graph_from_state(state)
+
+        # retrieving connected components
+        my_loc_component = Player.get_component_contains_location(g, state.my_loc)
+        rival_loc_component = Player.get_component_contains_location(g, state.rival_loc)
+
+        # calculating maximum path in respective components using dfs
+        my_longest_path_len = Player.dfs_get_longest_path(my_loc_component, state.my_loc)
+        rival_longest_path_len = my_longest_path_len
+
+        # calculating fruit score and adversary manhattan distance score
+        score_closest_fruit_m_dist = utils.calc_fruit_score(state)
+        score_adversary_m_dist = utils.calc_adversary_score(state)
+
+        # if in different components then calc maximum path for rival
+        if my_loc_component != rival_loc_component:
+            rival_longest_path_len = Player.dfs_get_longest_path(rival_loc_component, state.rival_loc)
+
+        path_len_diff = my_longest_path_len - rival_longest_path_len
+
+        h1 = path_len_diff
+        h2 = score_closest_fruit_m_dist
+        h3 = score_adversary_m_dist
+        h4 = score_diff
+
+        if path_len_diff > 0:
+            h1 = state.penalty_score
+        elif path_len_diff < 0:
+            h1 = -state.penalty_score
+        # else h1 = 0
+
+        h = h1 + h2 + h3 + h4
+
+        return h
+
+
+def test_heuristic_function():
     board = np.array([[1, -1, -1,  2],
                       [0,  0, -1,  0],
                       [0, -1, -1,  0],
@@ -259,11 +287,10 @@ def main():
 
     state = PlayerState(board=board, fruit_locations={}, fruits_turns_to_live=0,
                         players_scores={}, player=AbstractPlayer(0.0, 0), turn=MY_TURN,
-                        players_locations={MY_TURN: my_loc, RIVAL_TURN: rival_loc})
-    path_length = Player.asdf(state)
+                        players_locations={MY_TURN: my_loc, RIVAL_TURN: rival_loc}, penalty_score=300)
+    path_length = Player.contest_heuristic_function(state)
     print(path_length)
 
 
-# TODO: delete
 if __name__ == '__main__':
-    main()
+    test_heuristic_function()

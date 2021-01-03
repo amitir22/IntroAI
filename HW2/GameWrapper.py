@@ -42,11 +42,8 @@ class GameWrapper:
 
         initial_board = self.set_initial_board(size, block_positions, starts)
 
-        # todo: roll back
-        # self.game = Game(initial_board, starts, max_fruit_score=max_fruit_score, max_fruit_time=max_fruit_time,
-        #                 animated=True, animation_func=self.animate_func)
         self.game = Game(initial_board, starts, max_fruit_score=max_fruit_score, max_fruit_time=max_fruit_time,
-                         animated=True, animation_func=self.animate_func, fruits_max_part_of_free_spaces=0)
+                        animated=True, animation_func=self.animate_func)
 
         for i, player in enumerate(self.players):
             player.set_game_params(self.game.get_map_for_player_i(player_id=i))

@@ -27,6 +27,7 @@ class PlayerState:
     players_locations: Dict[int, Tuple[int, int]]
     players_scores: Dict[int, int]
     player: object  # supposed to be a Player class but i can't really declare it here
+    penalty_score: int
 
     @property
     def my_loc(self):
@@ -89,46 +90,21 @@ def perform_move(state: PlayerState, player_turn: int, target_location: tuple):
     return None
 
 
-def sorted_successor_states_of(state: PlayerState):
-    """
-    :param state: the state we expand
-    :return: tuple (a successor state, the direction to the successor)
-    """
-    heuristic_values_of_state = []
-    successor_states = []
-
-    for direction in get_directions():
-        player_old_loc = state.players_locations[state.turn]
-        player_new_loc = tup_add(player_old_loc, direction)
-
-        if is_move_valid(state.board, player_new_loc):
-            next_state = perform_move(state, state.turn, player_new_loc)
-
-            next_state.fruits_turns_to_live -= 1
-            next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
-
-            h_value = heuristic_function(next_state)
-
-            heuristic_values_of_state.append(h_value)
-            successor_states.append((next_state, direction))
-
-    sorted_indices = np.argsort(heuristic_values_of_state)
-    sorted_successor_states = []
-
-    for index in sorted_indices:
-        sorted_successor_states.append(successor_states[index])
-
-    return sorted_successor_states
-
-
 def heuristic_function(state: PlayerState):
-    a = 2  # todo: change
+    score_diff = state.my_score - state.rival_score
+    is_hole = is_hole_state(state)
+
+    if is_hole:
+        return score_diff - state.penalty_score
+
+    a = 2  # => 5x5 matrix
 
     my_row, my_col = state.my_loc
 
     score_available_cells = 1
     score_blocked_cells = 1
 
+    # scanning the matrix
     for row in range(my_row - a, my_row + a + 1):
         for col in range(my_col - a, my_col + a + 1):
             if (row, col) != (my_row, my_col):
@@ -144,6 +120,88 @@ def heuristic_function(state: PlayerState):
                 else:
                     score_blocked_cells += 1
 
+    score_closest_fruit_m_dist = calc_fruit_score(state)
+    score_adversary_m_dist = calc_adversary_score(state)
+
+    h1_2 = (score_available_cells / score_blocked_cells)
+    h3 = score_closest_fruit_m_dist
+    h4 = score_adversary_m_dist
+
+    return h1_2 * (h3 + h4)
+
+
+def successor_states_of(state: PlayerState):
+    """
+    :param state: the state we expand
+    :return: tuple (a successor state, the direction to the successor)
+    """
+    successor_states = []
+
+    for direction in get_directions():
+        player_old_loc = state.players_locations[state.turn]
+        player_new_loc = tup_add(player_old_loc, direction)
+
+        if is_move_valid(state.board, player_new_loc):
+            next_state = perform_move(state, state.turn, player_new_loc)
+
+            next_state.fruits_turns_to_live -= 1
+            next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
+            successor_states.append((next_state, direction))
+
+    return successor_states
+
+
+def sorted_successor_states_of(state: PlayerState, heuristic_func=heuristic_function):
+    """
+    :param state: the state we expand
+    :param heuristic_func: the heuristic function we use to sort the successor
+    :return: tuple (a successor state, the direction to the successor)
+    """
+    heuristic_values_of_state = []
+    successor_states = []
+
+    for direction in get_directions():
+        player_old_loc = state.players_locations[state.turn]
+        player_new_loc = tup_add(player_old_loc, direction)
+
+        if is_move_valid(state.board, player_new_loc):
+            next_state = perform_move(state, state.turn, player_new_loc)
+
+            next_state.fruits_turns_to_live -= 1
+            next_state.turn = 1 - state.turn  # if rival -> next=me | else next=rival
+
+            h_value = heuristic_func(next_state)
+
+            heuristic_values_of_state.append(h_value)
+            successor_states.append((next_state, direction))
+
+    sorted_indices = np.argsort(heuristic_values_of_state)
+    sorted_successor_states = []
+
+    for index in sorted_indices:
+        sorted_successor_states.append(successor_states[index])
+
+    return sorted_successor_states
+
+
+# Custom helper functions:
+
+def is_hole_state(state: PlayerState):
+    my_row, my_col = state.my_loc
+
+    possible_loc1 = my_row, my_col + 1
+    possible_loc2 = my_row, my_col - 1
+    possible_loc3 = my_row + 1, my_col
+    possible_loc4 = my_row - 1, my_col
+
+    is_hole = 1 - int(is_move_valid(state.board, possible_loc1) or
+                      is_move_valid(state.board, possible_loc2) or
+                      is_move_valid(state.board, possible_loc3) or
+                      is_move_valid(state.board, possible_loc4))
+    return is_hole
+
+
+def calc_fruit_score(state: PlayerState):
     current_min_fruit_dist = np.inf
     current_min_fruit_score = 0
 
@@ -158,26 +216,20 @@ def heuristic_function(state: PlayerState):
         if is_fruit_viable and (my_fruit_dist, fruit_score) < (current_min_fruit_dist, current_min_fruit_score):
             current_min_fruit_dist, current_min_fruit_score = my_fruit_dist, fruit_score
 
-    score_closest_fruit_m_dist = current_min_fruit_dist
-    score_adversary_m_dist = m_dist(state.my_loc, state.rival_loc) + \
-                             np.linalg.norm(np.array(state.my_loc) - np.array(state.rival_loc))
+    score_closest_fruit_m_dist = current_min_fruit_score
 
-    possible_loc1 = my_row, my_col + 1
-    possible_loc2 = my_row, my_col - 1
-    possible_loc3 = my_row + 1, my_col
-    possible_loc4 = my_row - 1, my_col
-
-    is_not_hole_state = int(is_move_valid(state.board, possible_loc1) or
-                            is_move_valid(state.board, possible_loc2) or
-                            is_move_valid(state.board, possible_loc3) or
-                            is_move_valid(state.board, possible_loc4))
-
-    # todo: check if need to add '+1' in previous players
-    return is_not_hole_state * ((score_available_cells / score_blocked_cells) /
-                                (score_closest_fruit_m_dist + score_adversary_m_dist + 1))
+    return score_closest_fruit_m_dist
 
 
-# Custom helper functions:
+def calc_adversary_score(state: PlayerState):
+    num_rows = len(state.board)
+    num_cols = len(state.board[0])
+
+    # can be zero so to avoid dividing by zero i added '+1'
+    adversary_m_dist = m_dist(state.my_loc, state.rival_loc) + 1
+
+    return (num_rows + num_cols) / adversary_m_dist
+
 
 def is_move_valid(board: np.array, target_location: tuple):
     if is_location_in_board(board, target_location):
