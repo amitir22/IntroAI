@@ -132,7 +132,7 @@ class Player(AbstractPlayer):
         if phase is None:
             phase = 'no phase computed'
         print('global alpha-beta:')
-        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, minimax value: {last_minimax_value}'
+        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, minimax value: {last_minimax_value} '
               f'scores: player1: {self.current_state.my_score} ,player2: {self.current_state.rival_score}, '
               f'phase: {phase}')
 
