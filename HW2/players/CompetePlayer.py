@@ -115,7 +115,7 @@ class Player(AbstractPlayer):
             tick = time.time()
 
             is_there_no_time_for_next_iteration = time_left < BRANCHING_FACTOR * time_diff or \
-                                                  time_left <= 0.1 * final_time_limit
+                                                  time_left <= 0.2 * final_time_limit
 
             is_depth_covers_all_cells = current_depth >= num_zeros_on_board
 
