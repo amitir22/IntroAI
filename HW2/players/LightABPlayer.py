@@ -6,15 +6,10 @@ from typing import Tuple, List
 from SearchAlgos import AlphaBeta
 import numpy as np
 import utils
-from utils import PlayerState, MY_TURN, RIVAL_TURN
+from utils import PlayerState, BLOCK_CELL, P1_CELL, P2_CELL, MY_TURN, RIVAL_TURN
 
 
 class Player(AbstractPlayer):
-    BRANCHING_FACTOR = 4
-    BLOCK_CELL = -1
-    P1_CELL = 1
-    P2_CELL = 2
-
     game_time: float
     penalty_score: int
     search_algo: AlphaBeta
@@ -44,15 +39,15 @@ class Player(AbstractPlayer):
         self.num_rows = len(board)
         self.num_cols = len(board[0])
 
-        my_loc = np.where(board == self.P1_CELL)
+        my_loc = np.where(board == P1_CELL)
         my_loc = my_loc[0][0], my_loc[1][0]
-        rival_loc = np.where(board == self.P2_CELL)
+        rival_loc = np.where(board == P2_CELL)
         rival_loc = rival_loc[0][0], rival_loc[1][0]
 
         assert None not in [my_loc, rival_loc]
 
-        board[my_loc] = Player.BLOCK_CELL
-        board[rival_loc] = Player.BLOCK_CELL
+        board[my_loc] = BLOCK_CELL
+        board[rival_loc] = BLOCK_CELL
 
         players_scores = {MY_TURN: 0, RIVAL_TURN: 0}
         players_locations = {MY_TURN: my_loc, RIVAL_TURN: rival_loc}
@@ -121,7 +116,6 @@ class Player(AbstractPlayer):
 
     ########## helper functions for MiniMax algorithm ##########
 
-    # TODO: make sure this is ok
     @staticmethod
     def light_heuristic_function(state: PlayerState):
         is_not_hole_state = False
