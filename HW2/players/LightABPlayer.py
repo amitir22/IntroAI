@@ -87,11 +87,6 @@ class Player(AbstractPlayer):
         self.current_state = utils.perform_move(self.current_state, MY_TURN, next_location)
         self.my_state_list.append((self.current_state, minimax_value, best_move))
 
-        # todo: remove
-        print('light:')
-        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, '
-              f'scores: player1: {self.current_state.my_score} ,player2: {self.current_state.rival_score}')
-
         return best_move
 
     def set_rival_move(self, pos):

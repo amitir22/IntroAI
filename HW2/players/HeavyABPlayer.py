@@ -83,11 +83,6 @@ class Player(AbstractPlayer):
         # updating the board in the next state and moving the current_state to point at the next
         self.current_state = utils.perform_move(self.current_state, MY_TURN, next_location)
 
-        # todo: remove
-        print('heavy:')
-        print(f'turn: {len(self.my_state_list)}, depth: {current_depth}, '
-              f'scores: player1: {self.current_state.my_score} ,player2: {self.current_state.rival_score}')
-
         return best_move
 
     def set_rival_move(self, pos):
