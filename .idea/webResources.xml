@@ -7,6 +7,8 @@
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/HW2/boards" />
             <path value="file://$PROJECT_DIR$/HW2/fruits_imgs" />
+            <path value="file://$PROJECT_DIR$/HW3/data_sets" />
+            <path value="file://$PROJECT_DIR$/HW3/prediciton_tests" />
           </resourceRoots>
         </entryData>
       </entry>
