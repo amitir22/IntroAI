@@ -1,4 +1,3 @@
-import utilities
 from numpy import ndarray
 from typing import List
 from feature_selector import FeatureSelector
@@ -33,7 +32,8 @@ class TDIDTree:
         for example in examples:
             classifies.append(self.classify_single(example))
 
-        return classifies
+        # todo: is this ndarray really necessary?
+        return ndarray(classifies)
 
     # helper functions:
     def classify_single(self, example: ndarray):

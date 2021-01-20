@@ -1,5 +1,6 @@
 import utilities
 from info_gain_calculator import InfoGainCalculator
+from typing import List
 from numpy import ndarray, argsort
 
 
@@ -11,10 +12,22 @@ class FeatureSelector:
 
     info_gain_calculator: InfoGainCalculator
 
-    def __init__(self, entropy_calculator: InfoGainCalculator):
-        self.info_gain_calculator = entropy_calculator
+    def __init__(self, info_gain_calculator: InfoGainCalculator):
+        """
+        initializing the info_gain_calculator of the feature selector with the given calculator
+        :param info_gain_calculator: the given calculator
+        """
+        self.info_gain_calculator = info_gain_calculator
 
-    def select_feature_for_split(self, examples: ndarray, features_indexes):
+    def select_best_feature_for_split(self, examples: ndarray, features_indexes: List[int]):
+        """
+        selecting a feature to split by to get maximum info-gain
+        :param examples: the examples we mean to split
+        :param features_indexes: a list of the features indexes
+        :return: two values: (1), (2)
+                 (1): the index of the best feature to split by
+                 (2): the best mean value to split by
+        """
         best_feature_index = utilities.INVALID_COLUMN_INDEX
         best_info_gain = utilities.DEFAULT_INFO_GAIN
         best_feature_mean_value = utilities.DEFAULT_MEAN_VALUE
@@ -22,7 +35,7 @@ class FeatureSelector:
         for feature_index in features_indexes:
             current_feature_column = examples[:, feature_index]
 
-            # apparently trying to use 'sorted' corrupts the 'examples' table
+            # bugfix: apparently trying to use 'sorted' corrupts the 'examples' table
             sorted_examples_indexes = argsort(current_feature_column)
 
             for i in range(len(sorted_examples_indexes) - 1):
