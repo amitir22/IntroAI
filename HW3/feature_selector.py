@@ -15,6 +15,7 @@ class FeatureSelector:
     def __init__(self, info_gain_calculator: InfoGainCalculator):
         """
         initializing the info_gain_calculator of the feature selector with the given calculator
+
         :param info_gain_calculator: the given calculator
         """
         self.info_gain_calculator = info_gain_calculator
@@ -22,13 +23,15 @@ class FeatureSelector:
     def select_best_feature_for_split(self, examples: ndarray, features_indexes: List[int]):
         """
         selecting a feature to split by to get maximum info-gain
+
         :param examples: the examples we mean to split
         :param features_indexes: a list of the features indexes
-        :return: two values: (1), (2)
+
+        :return: two values: (1), (2) (tuple[int, float])
                  (1): the index of the best feature to split by
                  (2): the best mean value to split by
         """
-        best_feature_index = utilities.INVALID_COLUMN_INDEX
+        best_feature_index = utilities.INVALID_FEATURE_INDEX
         best_info_gain = utilities.DEFAULT_INFO_GAIN
         best_feature_mean_value = utilities.DEFAULT_MEAN_VALUE
 
@@ -57,7 +60,7 @@ class FeatureSelector:
                     best_feature_index = feature_index
 
         # todo: remove
-        assert best_feature_index != utilities.INVALID_COLUMN_INDEX
+        assert best_feature_index != utilities.INVALID_FEATURE_INDEX
         assert best_feature_mean_value != utilities.DEFAULT_MEAN_VALUE
 
         # todo: consider changing the order

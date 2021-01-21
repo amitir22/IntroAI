@@ -11,17 +11,19 @@ class EntropyCalculator(InfoGainCalculator):
     def calc_info_gain(self, examples: ndarray, feature_index: int, mean_feature_value):
         """
         calculating the possible information gain from splitting the given examples by the given mean_feature_value
+
         :param examples: the table we analyze
         :param feature_index: the index of the feature (column) we use to calculate the information gained
         :param mean_feature_value: the value we split by to left and right
-        :return: the "score" of the information gained
+
+        :return: the "score" of the information gained (float)
         """
         num_examples = len(examples)
 
         left_examples = examples[examples[:, feature_index] < mean_feature_value]
         num_left_examples = len(left_examples)
 
-        if self.is_homogenous(num_examples, num_left_examples):  # here to save some calculation time
+        if utilities.is_homogenous(num_examples, num_left_examples):  # here to save some calculation time
             return utilities.DEFAULT_INFO_GAIN
 
         right_examples = examples[examples[:, feature_index] >= mean_feature_value]
@@ -41,11 +43,14 @@ class EntropyCalculator(InfoGainCalculator):
 
     # helper functions:
 
-    def calc_entropy(self, examples: ndarray):
+    @staticmethod
+    def calc_entropy(examples: ndarray):
         """
         calculating the entropy of the given examples
+
         :param examples: the given examples
-        :return: the entropy of the group of examples
+
+        :return: the entropy of the group of examples (float)
         """
         num_examples = len(examples)
         num_sick_examples = len(utilities.select_sick_examples(examples))
@@ -53,7 +58,7 @@ class EntropyCalculator(InfoGainCalculator):
         # TODO: remove
         assert num_examples != 0
 
-        if self.is_homogenous(num_examples, num_sick_examples):
+        if utilities.is_homogenous(num_examples, num_sick_examples):
             return utilities.DEFAULT_INFO_GAIN
 
         num_healthy_examples = num_examples - num_sick_examples
@@ -65,11 +70,3 @@ class EntropyCalculator(InfoGainCalculator):
         entropy_sick = -probability_sick * log2(probability_sick)
 
         return entropy_healthy + entropy_sick
-
-    @staticmethod
-    def is_homogenous(num_examples, num_sick_examples):
-        """
-        checking whether the examples are homogenous.
-        :return: True if homogenous, False otherwise.
-        """
-        return num_sick_examples in [num_examples, 0]  # if all/none of the examples are sick

@@ -16,14 +16,3 @@ class DataSetHandler:
 
     def read_test_data(self):
         return pandas.read_csv(self.test_path)
-
-
-def test_read_all():
-    data_set_handler = DataSetHandler()
-
-    return data_set_handler.read_train_data()
-
-
-if __name__ == '__main__':
-    dataframe = test_read_all()
-    pass
