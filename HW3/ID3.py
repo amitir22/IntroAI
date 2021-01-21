@@ -1,19 +1,23 @@
 import pandas
 import utilities
 from tdidt import TDIDTree
-from feature_selector import FeatureSelector
+from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
 from numpy import ndarray
+from typing import Callable, List, Tuple
 
 
 class ID3:
+    """
+    ID3 Model of TDIDT
+    """
     is_initialized: bool
     decision_tree: TDIDTree
-    feature_selector: FeatureSelector
+    select_feature: Callable[[ndarray, List[int]], Tuple[int, float]]
 
-    def __init__(self, feature_selector: FeatureSelector):
-        self.feature_selector = feature_selector
+    def __init__(self, feature_selector: ID3FeatureSelector):
+        self.select_feature = feature_selector.select_best_feature_for_split
 
     def train(self, dataset: pandas.DataFrame):
         examples = dataset.to_numpy()
@@ -23,7 +27,7 @@ class ID3:
 
         features_indexes = list(range(first_column_index, last_column_index))
 
-        self.decision_tree = TDIDTree(examples, features_indexes, self.feature_selector, utilities.SICK)
+        self.decision_tree = TDIDTree(examples, features_indexes, self.select_feature, utilities.SICK)
         self.is_initialized = True
 
     def test(self, dataset: pandas.DataFrame):
@@ -38,7 +42,7 @@ class ID3:
 def ex1(data_handler: DataSetHandler):
     # dependency injection
     info_gain_calculator = EntropyCalculator()
-    id3_feature_selector = FeatureSelector(info_gain_calculator)
+    id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
     id3 = ID3(id3_feature_selector)
 
     train_data = data_handler.read_train_data()

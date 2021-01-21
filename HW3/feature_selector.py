@@ -1,13 +1,21 @@
 import utilities
 from info_gain_calculator import InfoGainCalculator
-from typing import List
+from typing import List, Tuple
 from numpy import ndarray, argsort
+from abc import ABC
 
 
-# TODO: maybe rename to ID3FeatureSelector
-class FeatureSelector:
+class FeatureSelector(ABC):
     """
-    ID3 feature selector class
+    abstract feature selector class
+    """
+    def select_best_feature_for_split(self, examples: ndarray, features_indexes: List[int]) -> Tuple[int, float]:
+        pass
+
+
+class ID3FeatureSelector(FeatureSelector):
+    """
+    implementation of feature selector class for ID3
     """
 
     info_gain_calculator: InfoGainCalculator
@@ -20,14 +28,14 @@ class FeatureSelector:
         """
         self.info_gain_calculator = info_gain_calculator
 
-    def select_best_feature_for_split(self, examples: ndarray, features_indexes: List[int]):
+    def select_best_feature_for_split(self, examples: ndarray, features_indexes: List[int]) -> Tuple[int, float]:
         """
         selecting a feature to split by to get maximum info-gain
 
         :param examples: the examples we mean to split
         :param features_indexes: a list of the features indexes
 
-        :return: two values: (1), (2) (tuple[int, float])
+        :return: two values: (1), (2) (Tuple[int, float])
                  (1): the index of the best feature to split by
                  (2): the best mean value to split by
         """

@@ -1,7 +1,7 @@
 from numpy import ndarray
-from typing import List, Union
+from typing import Callable, List, Tuple, Union
 from sklearn.model_selection import KFold
-from feature_selector import FeatureSelector
+from feature_selector import ID3FeatureSelector
 from decision_tree_node import DecisionTreeNode
 from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, SICK, HEALTHY, classify_by_majority, \
                       select_sick_examples, is_homogenous
@@ -16,8 +16,8 @@ class TDIDTree:
     """
     root_node: DecisionTreeNode
 
-    # TODO: change 'feature_selector' to 'select_feature_func'
-    def __init__(self, examples: ndarray, features_indexes: List[int], feature_selector: FeatureSelector,
+    def __init__(self, examples: ndarray, features_indexes: List[int],
+                 select_feature_func: Callable[[ndarray, List[int]], Tuple[int, float]],
                  default_classification: Union[SICK, HEALTHY]):
         """
         recursively builds a TDIDT
@@ -36,15 +36,15 @@ class TDIDTree:
                 self.root_node = DecisionTreeNode(num_examples, INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, None, None,
                                                   default_classification, True)
             else:
-                select_best_feature = feature_selector.select_best_feature_for_split
+                select_best_feature = select_feature_func
 
                 best_feature_index, best_feature_mean_value = select_best_feature(examples, features_indexes)
 
                 left_examples = examples[examples[:, best_feature_index] < best_feature_mean_value]
                 right_examples = examples[examples[:, best_feature_index] >= best_feature_mean_value]
 
-                left_subtree = TDIDTree(left_examples, features_indexes, feature_selector, default_classification)
-                right_subtree = TDIDTree(right_examples, features_indexes, feature_selector, default_classification)
+                left_subtree = TDIDTree(left_examples, features_indexes, select_feature_func, default_classification)
+                right_subtree = TDIDTree(right_examples, features_indexes, select_feature_func, default_classification)
 
                 left_node, right_node = left_subtree.root_node, right_subtree.root_node
 

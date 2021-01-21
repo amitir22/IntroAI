@@ -3,7 +3,7 @@
 # todo: make sure to document all important functions
 # todo: ...
 
-from id3 import ex1
+from ID3 import ex1
 from data_set_handler import DataSetHandler
 
 
