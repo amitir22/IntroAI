@@ -1,13 +1,18 @@
-import pandas
-import utilities
+from matplotlib import pyplot
+from pandas import DataFrame
+from numpy import ndarray
+from typing import Callable, List, Tuple, Union
+from sklearn.model_selection import KFold
+
 from tdidt import TDIDTree
 from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
-from numpy import ndarray
-from typing import Callable, List, Tuple
+from utilities import SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, DEFAULT_SHUFFLE, \
+    ID_SEED, M_VALUES_FOR_PRUNING, calc_error_rate, classify_by_majority
 
 
+# todo: document all methods and functions in module
 class ID3:
     """
     ID3 Model of TDIDT
@@ -15,22 +20,30 @@ class ID3:
     is_initialized: bool
     decision_tree: TDIDTree
     select_feature: Callable[[ndarray, List[int]], Tuple[int, float]]
+    is_with_pruning: bool
+    prune_threshold: int
+    default_classification_function: Callable[[ndarray, ndarray], Union[SICK, HEALTHY]]
 
-    def __init__(self, feature_selector: ID3FeatureSelector):
+    def __init__(self, feature_selector: ID3FeatureSelector,
+                 is_with_pruning: bool = False, prune_threshold: int = DEFAULT_PRUNE_THRESHOLD):
         self.select_feature = feature_selector.select_best_feature_for_split
+        self.is_with_pruning = is_with_pruning
+        self.prune_threshold = prune_threshold
+        self.default_classification_function = classify_by_majority
 
-    def train(self, dataset: pandas.DataFrame):
+    def train(self, dataset: DataFrame):
         examples = dataset.to_numpy()
 
-        first_column_index = utilities.STATUS_FEATURE_INDEX + 1
+        first_column_index = STATUS_FEATURE_INDEX + 1
         last_column_index = len(dataset.columns)  # todo: maybe need to add +1? - no because start from 0
 
         features_indexes = list(range(first_column_index, last_column_index))
 
-        self.decision_tree = TDIDTree(examples, features_indexes, self.select_feature, utilities.SICK)
+        self.decision_tree = TDIDTree(examples, features_indexes, self.select_feature, SICK,
+                                      self.is_with_pruning, self.prune_threshold, self.default_classification_function)
         self.is_initialized = True
 
-    def test(self, dataset: pandas.DataFrame):
+    def test(self, dataset: DataFrame):
         examples = dataset.to_numpy()
 
         if self.is_initialized:
@@ -45,34 +58,89 @@ def ex1(data_handler: DataSetHandler):
     id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
     id3 = ID3(id3_feature_selector)
 
-    train_data = data_handler.read_train_data()
-    test_data = data_handler.read_test_data()
+    train_data, test_data = data_handler.read_both_data()
+
+    id3.train(train_data)
+
+    tests_results = id3.test(test_data)
+
+    print_ex1_test_result(test_data.to_numpy(), tests_results)
+
+
+# todo: extract the prediction rate calculation to a function in utilities
+def print_ex1_test_result(test_data: ndarray, test_results: list):
+    error_rate = calc_error_rate(test_data, test_results)
+    prediction_rate = 1 - error_rate
+
+    # todo: don't forget to eliminate all the text
+    # print(f'prediction rate: {prediction_rate}')
+    print(prediction_rate)
+
+
+def experiment(data_handler: DataSetHandler):
+    """
+    instructions: create an object of type DataSetHandler with the path to the test data and the train data and pass
+                  him as argument
+
+    :param data_handler: a DataSetHandler object handling the data-sets reading
+
+    :return: None (plotting a graph without returning a value)
+    """
+    k_fold = KFold(DEFAULT_N_SPLIT, DEFAULT_SHUFFLE, ID_SEED)
+    m_values = M_VALUES_FOR_PRUNING
+    m_prediction_rates = []
+
+    dataset = data_handler.read_train_data()
+    examples = dataset.to_numpy()
+    columns = dataset.columns  # for reconstructing a data-frame
+
+    for m in m_values:
+        prune_threshold = m
+        sum_rates = 0
+
+        for train_indexes, test_indexes in k_fold.split(examples):
+            train_examples, test_examples = examples[train_indexes], examples[test_indexes]
+
+            train_data = DataFrame(data=train_examples, columns=columns)
+            test_data = DataFrame(data=test_examples, columns=columns)
+
+            test_results = run_id3_with_pruning(train_data, test_data, prune_threshold)
+
+            error_rate = calc_error_rate(test_examples, test_results)
+
+            prediction_rate = 1 - error_rate
+
+            sum_rates += prediction_rate
+
+        average_rate = sum_rates / DEFAULT_N_SPLIT
+        m_prediction_rates.append(average_rate)
+
+    plot_m_results(m_values, m_prediction_rates)
+
+
+def plot_m_results(m_values: List[int], m_prediction_rates: List[float]):
+    pyplot.xlabel('M value')
+    pyplot.ylabel('Prediction Rate')
+    pyplot.plot(m_values, m_prediction_rates)
+    pyplot.show()
+
+
+def run_id3_with_pruning(train_data: DataFrame, test_data: DataFrame, prune_threshold: int):
+    with_pruning = True
+
+    info_gain_calculator = EntropyCalculator()
+    id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
+    id3 = ID3(id3_feature_selector, with_pruning, prune_threshold)
 
     id3.train(train_data)
 
     test_result = id3.test(test_data)
 
-    print_ex1_test_result(test_data.to_numpy(), test_result)
+    return test_result
 
 
-def print_ex1_test_result(test_data: ndarray, test_result: list):
-    error_count = 0
-    total_count = len(test_data)
-
-    for row_index in range(total_count):
-        current_predicted = test_result[row_index]
-        current_actual = test_data[row_index, utilities.STATUS_FEATURE_INDEX]
-
-        if current_actual != current_predicted:
-            error_count += 1
-
-    error_rate = error_count / total_count
-    prediction_rate = 1 - error_rate
-
-    # todo: don't forget to eliminate all the text
-    print(f'prediction rate: {prediction_rate}')
-
-
+# todo: make sure only ex1 runs when executing ID3.py as a standalone script
 if __name__ == '__main__':
     data_set_handler = DataSetHandler()
-    ex1(data_set_handler)
+    # ex1(data_set_handler)
+    experiment(data_set_handler)

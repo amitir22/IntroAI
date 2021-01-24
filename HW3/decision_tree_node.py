@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Union
+
 from utilities import HEALTHY, SICK
 
 
@@ -11,6 +12,8 @@ class DecisionTreeNode:
     dataclass for each node in TDIDTree
     """
     num_examples: int
+    num_sick_examples: int
+    num_healthy_examples: int
     feature_index: int  # todo: sure? consider lambda
     feature_split_value: float
     left_sub_dt_tree: Union['DecisionTreeNode', None]

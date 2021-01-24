@@ -1,8 +1,9 @@
-import utilities
-from info_gain_calculator import InfoGainCalculator
 from typing import List, Tuple
 from numpy import ndarray, argsort
 from abc import ABC
+
+from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, DEFAULT_INFO_GAIN
+from info_gain_calculator import InfoGainCalculator
 
 
 class FeatureSelector(ABC):
@@ -39,9 +40,9 @@ class ID3FeatureSelector(FeatureSelector):
                  (1): the index of the best feature to split by
                  (2): the best mean value to split by
         """
-        best_feature_index = utilities.INVALID_FEATURE_INDEX
-        best_info_gain = utilities.DEFAULT_INFO_GAIN
-        best_feature_mean_value = utilities.DEFAULT_MEAN_VALUE
+        best_feature_index = INVALID_FEATURE_INDEX
+        best_info_gain = DEFAULT_INFO_GAIN
+        best_feature_mean_value = DEFAULT_MEAN_VALUE
 
         for feature_index in features_indexes:
             current_feature_column = examples[:, feature_index]
@@ -68,8 +69,8 @@ class ID3FeatureSelector(FeatureSelector):
                     best_feature_index = feature_index
 
         # todo: remove
-        assert best_feature_index != utilities.INVALID_FEATURE_INDEX
-        assert best_feature_mean_value != utilities.DEFAULT_MEAN_VALUE
+        assert best_feature_index != INVALID_FEATURE_INDEX
+        assert best_feature_mean_value != DEFAULT_MEAN_VALUE
 
         # todo: consider changing the order
         return best_feature_index, best_feature_mean_value

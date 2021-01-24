@@ -1,6 +1,7 @@
 from numpy import ndarray, log2
+
 from info_gain_calculator import InfoGainCalculator
-import utilities
+from utilities import DEFAULT_INFO_GAIN, is_homogenous, select_sick_examples
 
 
 class EntropyCalculator(InfoGainCalculator):
@@ -23,8 +24,8 @@ class EntropyCalculator(InfoGainCalculator):
         left_examples = examples[examples[:, feature_index] < mean_feature_value]
         num_left_examples = len(left_examples)
 
-        if utilities.is_homogenous(num_examples, num_left_examples):  # here to save some calculation time
-            return utilities.DEFAULT_INFO_GAIN
+        if is_homogenous(num_examples, num_left_examples):  # here to save some calculation time
+            return DEFAULT_INFO_GAIN
 
         right_examples = examples[examples[:, feature_index] >= mean_feature_value]
         num_right_examples = len(right_examples)
@@ -53,13 +54,13 @@ class EntropyCalculator(InfoGainCalculator):
         :return: the entropy of the group of examples (float)
         """
         num_examples = len(examples)
-        num_sick_examples = len(utilities.select_sick_examples(examples))
+        num_sick_examples = len(select_sick_examples(examples))
 
         # TODO: remove
         assert num_examples != 0
 
-        if utilities.is_homogenous(num_examples, num_sick_examples):
-            return utilities.DEFAULT_INFO_GAIN
+        if is_homogenous(num_examples, num_sick_examples):
+            return DEFAULT_INFO_GAIN
 
         num_healthy_examples = num_examples - num_sick_examples
 

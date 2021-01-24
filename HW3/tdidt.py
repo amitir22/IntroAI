@@ -1,9 +1,8 @@
 from numpy import ndarray
 from typing import Callable, List, Tuple, Union
-from sklearn.model_selection import KFold
-from feature_selector import ID3FeatureSelector
+
 from decision_tree_node import DecisionTreeNode
-from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, SICK, HEALTHY, classify_by_majority, \
+from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, \
                       select_sick_examples, is_homogenous
 
 
@@ -18,23 +17,37 @@ class TDIDTree:
 
     def __init__(self, examples: ndarray, features_indexes: List[int],
                  select_feature_func: Callable[[ndarray, List[int]], Tuple[int, float]],
-                 default_classification: Union[SICK, HEALTHY]):
+                 default_classification: Union[SICK, HEALTHY],
+                 is_with_pruning: bool, prune_threshold: int,
+                 default_classification_function: Callable[[ndarray, ndarray], Union[SICK, HEALTHY]]):
         """
         recursively builds a TDIDT
         """
         num_examples = len(examples)
 
-        if num_examples == 0:
-            self.root_node = DecisionTreeNode(num_examples, INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, None, None,
-                                              default_classification, True)
+        is_prune_needed = is_with_pruning and num_examples < prune_threshold
+
+        if num_examples == 0 or is_prune_needed:
+            assert prune_threshold > DEFAULT_PRUNE_THRESHOLD  # todo: remove
+
+            self.root_node = DecisionTreeNode(num_examples=num_examples, num_sick_examples=num_examples,
+                                              num_healthy_examples=num_examples, feature_index=INVALID_FEATURE_INDEX,
+                                              feature_split_value=DEFAULT_MEAN_VALUE,
+                                              left_sub_dt_tree=None, right_sub_dt_tree=None,
+                                              assigned_class=default_classification, is_homogenous=True)
         else:
             sick_examples = select_sick_examples(examples)
             num_sick_examples = len(sick_examples)
-            default_classification = classify_by_majority(examples, sick_examples)
+            num_healthy_examples = num_examples - num_sick_examples
+            default_classification = default_classification_function(examples, sick_examples)
 
             if is_homogenous(num_examples, num_sick_examples):
-                self.root_node = DecisionTreeNode(num_examples, INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, None, None,
-                                                  default_classification, True)
+                self.root_node = DecisionTreeNode(num_examples=num_examples, num_sick_examples=num_sick_examples,
+                                                  num_healthy_examples=num_healthy_examples,
+                                                  feature_index=INVALID_FEATURE_INDEX,
+                                                  feature_split_value=DEFAULT_MEAN_VALUE,
+                                                  left_sub_dt_tree=None, right_sub_dt_tree=None,
+                                                  assigned_class=default_classification, is_homogenous=True)
             else:
                 select_best_feature = select_feature_func
 
@@ -43,15 +56,20 @@ class TDIDTree:
                 left_examples = examples[examples[:, best_feature_index] < best_feature_mean_value]
                 right_examples = examples[examples[:, best_feature_index] >= best_feature_mean_value]
 
-                left_subtree = TDIDTree(left_examples, features_indexes, select_feature_func, default_classification)
-                right_subtree = TDIDTree(right_examples, features_indexes, select_feature_func, default_classification)
+                left_subtree = TDIDTree(left_examples, features_indexes, select_feature_func, default_classification,
+                                        is_with_pruning, prune_threshold, default_classification_function)
+                right_subtree = TDIDTree(right_examples, features_indexes, select_feature_func, default_classification,
+                                         is_with_pruning, prune_threshold, default_classification_function)
 
                 left_node, right_node = left_subtree.root_node, right_subtree.root_node
 
-                self.root_node = DecisionTreeNode(num_examples, best_feature_index, best_feature_mean_value, left_node,
-                                                  right_node, default_classification, False)
+                self.root_node = DecisionTreeNode(num_examples=num_examples, num_sick_examples=num_sick_examples,
+                                                  num_healthy_examples=num_healthy_examples,
+                                                  feature_index=best_feature_index,
+                                                  feature_split_value=best_feature_mean_value,
+                                                  left_sub_dt_tree=left_node, right_sub_dt_tree=right_node,
+                                                  assigned_class=default_classification, is_homogenous=True)
 
-    # TODO: check
     def classify(self, examples: ndarray):
         """
         classifying the given examples using the decision tree
@@ -60,12 +78,12 @@ class TDIDTree:
 
         :return: a list of the classifications (list containing utilities.SICK or utilities.HEALTHY for every example)
         """
-        classifies = []
+        classifications = []
 
         for example in examples:
-            classifies.append(self.classify_single(example))
+            classifications.append(self.classify_single(example))
 
-        return classifies
+        return classifications
 
     # helper functions:
 
@@ -79,12 +97,10 @@ class TDIDTree:
         """
         current_node = self.root_node
 
-        # todo: make sure i can use 'is' like this
         while current_node.is_homogenous is False:
             current_feature_index = current_node.feature_index
             current_feature_value = example[current_feature_index]
 
-            # todo: make sure it's supposed to be '<' and not '<='
             if current_feature_value < current_node.feature_split_value:
                 current_node = current_node.left_sub_dt_tree
             else:
