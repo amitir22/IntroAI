@@ -6,8 +6,7 @@ from typing import List, Union
 from ID3 import ID3
 from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
-from utilities import ID_SEED, SICK, HEALTHY, DEFAULT_COST_MAJORITY_FACTOR, classify_by_cost_majority, calc_loss, \
-    classify_by_majority
+from utilities import ID_SEED, SICK, HEALTHY, DEFAULT_COST_MAJORITY_FACTOR, classify_by_cost_majority, calc_loss
 from data_set_handler import DataSetHandler
 
 
@@ -39,7 +38,7 @@ class CostSensitiveID3(ID3):
         classifications = super(CostSensitiveID3, self).test(dataset)
 
         for c_index in range(len(classifications)):
-            if classifications[c_index] is HEALTHY:
+            if classifications[c_index] is HEALTHY:  # only flipping the results which can be false-negative
                 classifications[c_index] = self.roll_result_flip()
 
         return classifications

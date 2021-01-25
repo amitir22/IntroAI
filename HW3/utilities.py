@@ -7,11 +7,13 @@ from typing import Union
 SICK = 'M'
 HEALTHY = 'B'
 STATUS_FEATURE_INDEX = 0
+FIRST_NON_STATUS_FEATURE_INDEX = 1
 INVALID_FEATURE_INDEX = -1
 DEFAULT_INFO_GAIN = 0
 DEFAULT_MEAN_VALUE = 0
 
 # for ex3:
+DEFAULT_WITHOUT_PRUNING = False
 DEFAULT_PRUNE_THRESHOLD = -1
 M_VALUES_FOR_PRUNING = [2, 10, 30, 80, 160]  # consider using the half-series of 343 (170, 85, ...)
 DEFAULT_N_SPLIT = len(M_VALUES_FOR_PRUNING)
@@ -74,41 +76,38 @@ def is_homogenous(num_examples: int, num_sick_examples: int):
     return num_sick_examples in [num_examples, 0]  # if all/none of the examples are sick
 
 
-def calc_examples_dist(example1: ndarray, example2: ndarray):
+def calc_examples_dist(example1: array, example2: array):
     """
     calculating the euclidean distance between the vector of example1 and example2 by calculating the norm of the
     difference vector
 
-    :param example1: the vector as the matrix of the first example
-    :param example2: the vector as the matrix of the second example
+    :param example1: the vector of the first example
+    :param example2: the vector of the second example
 
     :return: the euclidean distance (float)
     """
-    ex1 = example1.flatten()
-    ex2 = example2.flatten()
-
-    diff = ex1 - ex2
+    diff = example1 - example2
 
     diff_norm = norm(diff)
 
     return diff_norm
 
 
-# todo: document and implement
-def calc_centroid(examples: ndarray):
+def calc_centroid(examples: array):
     """
     calculating the centroid of the given examples
 
     :param examples: the given examples to create a centroid
 
-    :return: the centroid vector (ndarray)
+    :return: the centroid vector (tuple)
     """
     num_examples = len(examples)
-    sum_vector = sum(examples)
+
+    sum_vector = sum(examples[:, STATUS_FEATURE_INDEX + 1:])
 
     centroid = sum_vector / num_examples
 
-    return centroid
+    return tuple(centroid)
 
 
 def calc_error_rate(test_data: ndarray, test_results: list):
@@ -161,7 +160,7 @@ def calc_loss(test_data: ndarray, test_results: list):
     return loss
 
 
-def get_errors_indexes(test_data, test_results):
+def get_errors_indexes(test_data: ndarray, test_results: list):
     """
     filtering the test results from the successful results, leaving only the errors, then returning a list of indexes
     of those results
@@ -212,7 +211,7 @@ def classify_by_cost_majority(examples: ndarray, sick_examples: ndarray = None) 
 
 
 def utilities_test_zone():
-    test_examples = array([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
+    test_examples = array([[1, 2, 3], [4, 5, 6], [9, 8, 7]])
     cent = calc_centroid(test_examples)
     print(cent)
 

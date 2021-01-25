@@ -4,16 +4,17 @@ from numpy import ndarray
 from typing import Callable, List, Tuple, Union
 from sklearn.model_selection import KFold
 
+from learning_classifier_model import LearningClassifierModel
 from tdidt import TDIDTree
 from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
-from utilities import SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, DEFAULT_SHUFFLE, \
-    ID_SEED, M_VALUES_FOR_PRUNING, calc_error_rate, classify_by_majority
+from utilities import SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, \
+    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, calc_error_rate, classify_by_majority
 
 
 # todo: document all methods and functions in module
-class ID3:
+class ID3(LearningClassifierModel):
     """
     ID3 Model of TDIDT
     """
@@ -25,7 +26,7 @@ class ID3:
     default_classification_function: Callable[[ndarray, ndarray], Union[SICK, HEALTHY]]
 
     def __init__(self, feature_selector: ID3FeatureSelector,
-                 is_with_pruning: bool = False, prune_threshold: int = DEFAULT_PRUNE_THRESHOLD):
+                 is_with_pruning: bool = DEFAULT_WITHOUT_PRUNING, prune_threshold: int = DEFAULT_PRUNE_THRESHOLD):
         self.select_feature = feature_selector.select_best_feature_for_split
         self.is_with_pruning = is_with_pruning
         self.prune_threshold = prune_threshold
@@ -34,7 +35,7 @@ class ID3:
     def train(self, dataset: DataFrame):
         examples = dataset.to_numpy()
 
-        first_column_index = STATUS_FEATURE_INDEX + 1
+        first_column_index = FIRST_NON_STATUS_FEATURE_INDEX
         last_column_index = len(dataset.columns)  # todo: maybe need to add +1? - no because start from 0
 
         features_indexes = list(range(first_column_index, last_column_index))
@@ -62,9 +63,9 @@ def ex1(data_handler: DataSetHandler):
 
     id3.train(train_data)
 
-    tests_results = id3.test(test_data)
+    test_results = id3.test(test_data)
 
-    print_ex1_test_result(test_data.to_numpy(), tests_results)
+    print_ex1_test_result(test_data.to_numpy(), test_results)
 
 
 # todo: extract the prediction rate calculation to a function in utilities
@@ -134,9 +135,9 @@ def run_id3_with_pruning(train_data: DataFrame, test_data: DataFrame, prune_thre
 
     id3.train(train_data)
 
-    test_result = id3.test(test_data)
+    test_results = id3.test(test_data)
 
-    return test_result
+    return test_results
 
 
 # todo: make sure only ex1 runs when executing ID3.py as a standalone script
