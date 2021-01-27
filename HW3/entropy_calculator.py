@@ -33,7 +33,7 @@ class EntropyCalculator(InfoGainCalculator):
 
         num_sick, num_left_sick, num_right_sick = self.get_num_sick_examples(examples, left_examples, right_examples)
 
-        # inferring the healthy parts sizes
+        # evaluating the healthy parts sizes
         num_healthy = num_examples - num_sick
         num_left_healthy = num_left_examples - num_left_sick
         num_right_healthy = num_right_examples - num_right_sick

@@ -1,5 +1,5 @@
 # List of todos for entire HW3
-# TODO: eliminate all todos
+# TODO: eliminate all todos and asserts
 # todo: make sure to document all important functions
 # TODO: reorganize functions by some order (especially in utilities.py)
 # todo: ...
