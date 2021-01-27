@@ -10,7 +10,8 @@ from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
 from utilities import SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, \
-    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, calc_error_rate, classify_by_majority
+    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, STATUS_FEATURE_INDEX, calc_error_rate, \
+    classify_by_majority
 
 
 # todo: document all methods and functions in module
@@ -40,8 +41,11 @@ class ID3(LearningClassifierModel):
 
         features_indexes = list(range(first_column_index, last_column_index))
 
-        self.decision_tree = TDIDTree(examples, features_indexes, self.select_feature, SICK,
-                                      self.is_with_pruning, self.prune_threshold, self.default_classification_function)
+        self.decision_tree = TDIDTree(examples=examples, features_indexes=features_indexes,
+                                      select_feature_func=self.select_feature, default_classification=SICK,
+                                      is_with_pruning=self.is_with_pruning, prune_threshold=self.prune_threshold,
+                                      default_classification_function=self.default_classification_function,
+                                      excluded_feature_index=STATUS_FEATURE_INDEX)
         self.is_initialized = True
 
     def test(self, dataset: DataFrame):
@@ -68,7 +72,6 @@ def ex1(data_handler: DataSetHandler):
     print_ex1_test_result(test_data.to_numpy(), test_results)
 
 
-# todo: extract the prediction rate calculation to a function in utilities
 def print_ex1_test_result(test_data: ndarray, test_results: list):
     error_rate = calc_error_rate(test_data, test_results)
     prediction_rate = 1 - error_rate
@@ -116,6 +119,9 @@ def experiment(data_handler: DataSetHandler):
         average_rate = sum_rates / DEFAULT_N_SPLIT
         m_prediction_rates.append(average_rate)
 
+        # todo remove
+        print(f'finished m={m}')
+
     plot_m_results(m_values, m_prediction_rates)
 
 
@@ -143,5 +149,5 @@ def run_id3_with_pruning(train_data: DataFrame, test_data: DataFrame, prune_thre
 # todo: make sure only ex1 runs when executing ID3.py as a standalone script
 if __name__ == '__main__':
     data_set_handler = DataSetHandler()
-    # ex1(data_set_handler)
-    experiment(data_set_handler)
+    ex1(data_set_handler)
+    # experiment(data_set_handler)

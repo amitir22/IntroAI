@@ -62,13 +62,13 @@ def specific_experiment(data_set_handler: DataSetHandler):
 def main():
     data_handler = DataSetHandler()
 
-    # todo: remove
-    specific_experiment(data_handler)
+    # # todo: remove
+    # specific_experiment(data_handler)
 
     ex1(data_handler)
     ex3(data_handler)
     ex4(data_handler)
-    ex6(data_handler)
+    # ex6(data_handler)
 
 
 if __name__ == '__main__':

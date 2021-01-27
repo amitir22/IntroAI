@@ -7,8 +7,8 @@ class DataSetHandler:
     test_path: str
 
     def __init__(self,
-                 train_path: str = 'data_sets/train.csv',
-                 test_path: str = 'prediction_tests/test.csv'):
+                 train_path: str = 'train.csv',
+                 test_path: str = 'test.csv'):
         self.train_path = train_path
         self.test_path = test_path
 

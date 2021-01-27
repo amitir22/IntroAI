@@ -1,6 +1,7 @@
 from numpy import ndarray, round, array
 from numpy.linalg import norm
 from typing import Union
+from copy import deepcopy
 
 
 # global constants:
@@ -11,19 +12,20 @@ FIRST_NON_STATUS_FEATURE_INDEX = 1
 INVALID_FEATURE_INDEX = -1
 DEFAULT_INFO_GAIN = 0
 DEFAULT_MEAN_VALUE = 0
+FLOATING_POINT_ERROR_RANGE = 10 ** (-10)
 
 # for ex3:
 DEFAULT_WITHOUT_PRUNING = False
 DEFAULT_PRUNE_THRESHOLD = -1
-M_VALUES_FOR_PRUNING = [2, 10, 30, 80, 160]  # consider using the half-series of 343 (170, 85, ...)
+# M_VALUES_FOR_PRUNING = [2, 10, 30, 80, 160]  # consider using the half-series of 343 (170, 85, ...)
+M_VALUES_FOR_PRUNING = [1, 2, 3, 5, 8, 16, 30, 50, 80, 120]
 DEFAULT_N_SPLIT = len(M_VALUES_FOR_PRUNING)
 DEFAULT_SHUFFLE = True
 ID_SEED = 123456789  # todo: make sure to update to mine when needed:
 
 # for ex4:
 # todo: make sure to set the factor
-FALSE_POSITIVE_COST_FACTOR = 5  # used for calculating the loss function
-DEFAULT_COST_MAJORITY_FACTOR = FALSE_POSITIVE_COST_FACTOR  # used for adapting the ID3 to minimize loss function
+FALSE_POSITIVE_COST_FACTOR = 10  # used for calculating the loss function
 
 
 # helper functions:
@@ -39,7 +41,7 @@ def select_sick_examples(examples: ndarray):
     return examples[examples[:, STATUS_FEATURE_INDEX] == SICK]
 
 
-def classify_by_majority(examples: ndarray, sick_examples: ndarray = None) -> Union[SICK, HEALTHY]:
+def classify_by_majority(examples: ndarray, sick_examples: ndarray) -> Union[SICK, HEALTHY]:
     """
     this function determines the most common classification among the given examples by finding which classification
     has majority
@@ -50,10 +52,6 @@ def classify_by_majority(examples: ndarray, sick_examples: ndarray = None) -> Un
     :return: the classification determined by majority (str)
     """
     num_examples = len(examples)
-
-    if sick_examples is None:
-        sick_examples = select_sick_examples(examples)
-
     num_sick_examples = len(sick_examples)
 
     sick_ratio = num_sick_examples / num_examples
@@ -64,16 +62,16 @@ def classify_by_majority(examples: ndarray, sick_examples: ndarray = None) -> Un
         return HEALTHY  # if sick ratio < 0.5
 
 
-def is_homogenous(num_examples: int, num_sick_examples: int):
+def are_equal_or_complement(num_group: int, num_subgroup: int):
     """
     checking whether the examples are homogenous.
 
-    :param num_examples: total number of examples
-    :param num_sick_examples: number of sick examples
+    :param num_group: total number of examples
+    :param num_subgroup: number of sick examples
 
     :return: True if homogenous, False otherwise. (bool)
     """
-    return num_sick_examples in [num_examples, 0]  # if all/none of the examples are sick
+    return num_subgroup in [num_group, 0]  # if all/none of the examples are sick
 
 
 def calc_examples_dist(example1: array, example2: array):
@@ -174,40 +172,6 @@ def get_errors_indexes(test_data: ndarray, test_results: list):
 
     return [row_index for row_index in range(total_count)
             if test_results[row_index] != test_data[row_index, STATUS_FEATURE_INDEX]]
-
-
-def classify_by_cost_majority(examples: ndarray, sick_examples: ndarray = None) -> Union[SICK, HEALTHY]:
-    """
-    this function determines the most common classification among the given examples by finding which classification
-    has majority
-
-    difference: except for determining by majority, it's determined by the cost majority where sick examples
-                affect more than healthy examples
-
-    :param examples: the given examples
-    :param sick_examples: the given sick examples selected from the given examples, can assume it's always true.
-
-    :return: the classification determined by majority (Union[SICK, HEALTHY])
-    """
-    num_examples = len(examples)
-
-    if sick_examples is None:
-        sick_examples = select_sick_examples(examples)
-
-    num_sick_examples = len(sick_examples)
-    num_healthy_examples = num_examples - num_sick_examples
-
-    healthy_cost = num_healthy_examples
-    sick_cost = num_sick_examples * DEFAULT_COST_MAJORITY_FACTOR
-
-    total_cost = healthy_cost + sick_cost
-
-    sick_ratio_with_cost = sick_cost / total_cost
-
-    if round(sick_ratio_with_cost):
-        return SICK  # if sick ratio >= 0.5
-    else:
-        return HEALTHY  # if sick ratio < 0.5
 
 
 def utilities_test_zone():

@@ -10,7 +10,8 @@ from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
 from utilities import ID_SEED, FIRST_NON_STATUS_FEATURE_INDEX, SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, \
-    DEFAULT_WITHOUT_PRUNING, calc_centroid, calc_examples_dist, classify_by_majority, calc_error_rate
+    DEFAULT_WITHOUT_PRUNING, STATUS_FEATURE_INDEX, calc_centroid, calc_examples_dist, classify_by_majority, \
+    calc_error_rate
 
 
 # todo: and document
@@ -31,6 +32,7 @@ class KNNForest(LearningClassifierModel):
         self.tree_population_ratio_to_id3 = p
         self.num_trees = N
         self.num_trees_to_test = K
+
         self.is_with_pruning = is_with_pruning
         self.prune_threshold = prune_threshold
         self.select_feature = feature_selector.select_best_feature_for_split
@@ -58,9 +60,12 @@ class KNNForest(LearningClassifierModel):
         for random_examples in self.get_random_examples(examples, tree_population_size):
             centroid_tuple = calc_centroid(random_examples)
 
-            self.forest[centroid_tuple] = TDIDTree(random_examples, features_indexes, self.select_feature, SICK,
-                                                   self.is_with_pruning, self.prune_threshold,
-                                                   self.default_classification_function)
+            self.forest[centroid_tuple] = TDIDTree(examples=random_examples, features_indexes=features_indexes,
+                                                   select_feature_func=self.select_feature, default_classification=SICK,
+                                                   is_with_pruning=self.is_with_pruning,
+                                                   prune_threshold=self.prune_threshold,
+                                                   default_classification_function=self.default_classification_function,
+                                                   excluded_feature_index=STATUS_FEATURE_INDEX)
 
     def test(self, dataset: DataFrame):
         examples = dataset.to_numpy()
@@ -111,7 +116,9 @@ class KNNForest(LearningClassifierModel):
         tree_results = []
 
         for tree_index in sorted_tree_indexes:
-            tree_result = self.forest[centroids[tree_index]].classify_single(example)
+            current_centroid_tuple = centroids[tree_index]
+
+            tree_result = self.forest[current_centroid_tuple].classify_single(example)
 
             tree_results.append(tree_result)
 
@@ -160,8 +167,8 @@ def run_knn_forest_with_parameters(data_handler: DataSetHandler, p: float, N: in
 
 def ex6(data_handler: DataSetHandler):
     p = 0.7
-    N = 20
-    K = 7
+    N = 5
+    K = 2
 
     run_knn_forest_with_parameters(data_handler, p, N, K)
 

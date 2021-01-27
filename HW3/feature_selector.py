@@ -2,7 +2,7 @@ from typing import List, Tuple
 from numpy import ndarray, argsort
 from abc import ABC
 
-from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, DEFAULT_INFO_GAIN
+from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, DEFAULT_INFO_GAIN, FLOATING_POINT_ERROR_RANGE
 from info_gain_calculator import InfoGainCalculator
 
 
@@ -60,6 +60,8 @@ class ID3FeatureSelector(FeatureSelector):
                 mean_value = (current_feature_value + next_feature_value) / 2
 
                 current_info_gain = self.info_gain_calculator.calc_info_gain(examples, feature_index, mean_value)
+
+                assert current_info_gain >= -FLOATING_POINT_ERROR_RANGE
 
                 if (current_info_gain, feature_index) == (best_info_gain, best_feature_index):
                     continue  # because we're told to choose the minimal feature index
