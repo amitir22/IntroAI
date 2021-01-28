@@ -1,7 +1,7 @@
 from matplotlib import pyplot
 from pandas import DataFrame
 from numpy import ndarray
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 from sklearn.model_selection import KFold
 
 from learning_classifier_model import LearningClassifierModel
@@ -9,11 +9,10 @@ from tdidt import TDIDTree
 from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
-from utilities import SICK, DEFAULT_PRUNE_THRESHOLD, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, \
-    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, calc_error_rate
+from utilities import SICK, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, DEFAULT_SHUFFLE, ID_SEED, \
+    M_VALUES_FOR_PRUNING, DEFAULT_PRUNE_THRESHOLD, WITHOUT_PRUNING, calc_error_rate
 
 
-# todo: document all methods and functions in module
 class ID3(LearningClassifierModel):
     """
     ID3 Model of TDIDT
@@ -22,16 +21,29 @@ class ID3(LearningClassifierModel):
     select_feature_func: Callable[[ndarray, List[int]], Tuple[int, float]]
     decision_tree: TDIDTree
 
-    def __init__(self, feature_selector: ID3FeatureSelector,
-                 is_with_pruning: bool = DEFAULT_WITHOUT_PRUNING, prune_threshold: int = DEFAULT_PRUNE_THRESHOLD):
-        self.select_feature_func = feature_selector.select_best_feature_for_split
+    def __init__(self, is_with_pruning: bool, prune_threshold: int):
+        """
+        initializing the model's parameters
+
+        :param is_with_pruning: whether or not the model will execute early pruning
+        :param prune_threshold: non-homogenous leaves will have less examples than the given value (prune_threshold)
+        """
+        info_gain_calculator = EntropyCalculator()
+        id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
+
+        self.select_feature_func = id3_feature_selector.select_best_feature_for_split
         self.decision_tree = TDIDTree(is_with_pruning=is_with_pruning, prune_threshold=prune_threshold)
 
     def train(self, dataset: DataFrame):
+        """
+        training the model with the given dataset
+
+        :param dataset: the given dataset
+        """
         examples = dataset.to_numpy()
 
         first_column_index = FIRST_NON_STATUS_FEATURE_INDEX
-        last_column_index = len(dataset.columns)  # todo: maybe need to add +1? - no because start from 0
+        last_column_index = len(dataset.columns)
 
         features_indexes = list(range(first_column_index, last_column_index))
 
@@ -42,6 +54,13 @@ class ID3(LearningClassifierModel):
         self.is_trained = True
 
     def test(self, dataset: DataFrame):
+        """
+        testing the model's classifications with the given dataset
+
+        :param dataset: the given data set
+
+        :return: the classifications of the examples in the dataset (List[Union[SICK, HEALTHY]])
+        """
         examples = dataset.to_numpy()
 
         if self.is_trained:
@@ -51,10 +70,12 @@ class ID3(LearningClassifierModel):
 
 
 def ex1(data_handler: DataSetHandler):
-    # dependency injection
-    info_gain_calculator = EntropyCalculator()
-    id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
-    id3 = ID3(id3_feature_selector, False, -1)  # todo: change
+    """
+    the function that will run when running this file
+
+    :param data_handler: self explanatory
+    """
+    id3 = ID3(WITHOUT_PRUNING, DEFAULT_PRUNE_THRESHOLD)
 
     train_data, test_data = data_handler.read_both_data()
 
@@ -70,7 +91,7 @@ def ex1(data_handler: DataSetHandler):
     print(prediction_rate)
 
 
-def experiment(data_handler: DataSetHandler):
+def ex3(data_handler: DataSetHandler):
     """
     instructions: create an object of type DataSetHandler with the path to the test data and the train data and pass
                   him as argument
@@ -123,10 +144,7 @@ def plot_m_results(m_values: List[int], m_prediction_rates: List[float]):
 
 def run_id3_with_pruning(train_data: DataFrame, test_data: DataFrame, prune_threshold: int):
     with_pruning = True
-
-    info_gain_calculator = EntropyCalculator()
-    id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
-    id3 = ID3(id3_feature_selector, with_pruning, prune_threshold)
+    id3 = ID3(with_pruning, prune_threshold)
 
     id3.train(train_data)
 
@@ -139,4 +157,3 @@ def run_id3_with_pruning(train_data: DataFrame, test_data: DataFrame, prune_thre
 if __name__ == '__main__':
     data_set_handler = DataSetHandler()
     ex1(data_set_handler)
-    # experiment(data_set_handler)

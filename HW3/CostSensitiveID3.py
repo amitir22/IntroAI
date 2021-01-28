@@ -1,53 +1,43 @@
-# todo: implement
-from pandas import DataFrame
-from random import randint, seed
-from typing import List, Union
-from numpy import ndarray
-
 from ID3 import ID3
 from feature_selector import ID3FeatureSelector
 from cost_sensitive_entropy_calculator import CostSensitiveEntropyCalculator
-from entropy_calculator import EntropyCalculator
-from utilities import calc_loss
+from utilities import DEFAULT_PRUNE_THRESHOLD, WITHOUT_PRUNING, calc_loss
 from data_set_handler import DataSetHandler
 
 
-# TODO: implement, test and document
 class CostSensitiveID3(ID3):
     """
     ID3 Model of TDIDT with consideration to the loss function described in ex.4
     """
 
+    def __init__(self, is_with_pruning: bool, prune_threshold: int):
+        super().__init__(is_with_pruning, prune_threshold)
 
-# TODO:
+        info_gain_calculator = CostSensitiveEntropyCalculator()  # where the difference between the regular ID3 lies.
+        id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
+
+        self.select_feature_func = id3_feature_selector.select_best_feature_for_split
+
+
 def ex4(data_handler: DataSetHandler):
-    # dependency injection
-    cs_info_gain_calculator = CostSensitiveEntropyCalculator()
-    info_gain_calculator = EntropyCalculator()
+    """
+    the function that will run when running this file
 
-    cs_id3_feature_selector = ID3FeatureSelector(cs_info_gain_calculator)
-    id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
-
-    # cs_id3 = CostSensitiveID3(cs_id3_feature_selector, ID_SEED)
-    id3 = ID3(id3_feature_selector, False, 0)
-    cs_id3 = ID3(cs_id3_feature_selector, False, 0)
+    :param data_handler: self explanatory
+    """
+    cs_id3 = CostSensitiveID3(WITHOUT_PRUNING, DEFAULT_PRUNE_THRESHOLD)
 
     train_data, test_data = data_handler.read_both_data()
 
-    id3.train(train_data)
     cs_id3.train(train_data)
 
-    tests_results = id3.test(test_data)
     cs_tests_results = cs_id3.test(test_data)
 
     test_data_np = test_data.to_numpy()
 
-    loss = calc_loss(test_data_np, tests_results)
     cs_loss = calc_loss(test_data_np, cs_tests_results)
 
-    print(f'loss: {loss}')
-    print(f'cs_loss: {cs_loss}')
-    print(f'ratio: {cs_loss / loss} (lower is better)')
+    print(cs_loss)
 
 
 if __name__ == '__main__':

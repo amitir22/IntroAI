@@ -1,9 +1,9 @@
-from typing import List, Tuple
 from numpy import ndarray, argsort
 from abc import ABC
+from typing import List, Tuple
 
-from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, NO_INFO_GAIN, FLOATING_POINT_ERROR_RANGE
 from info_gain_calculator import InfoGainCalculator
+from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, NO_INFO_GAIN, FLOATING_POINT_ERROR_RANGE
 
 
 class FeatureSelector(ABC):
@@ -63,16 +63,11 @@ class ID3FeatureSelector(FeatureSelector):
 
                 assert current_info_gain >= -FLOATING_POINT_ERROR_RANGE
 
-                # todo: what? make sure if can simplify
-                if current_info_gain == best_info_gain and feature_index == best_feature_index:
+                if (current_info_gain, feature_index) == (best_info_gain, best_feature_index):
                     continue  # because we're told to choose the minimal feature index
                 elif current_info_gain >= best_info_gain:
                     best_feature_mean_value = mean_value
                     best_info_gain = current_info_gain
                     best_feature_index = feature_index
 
-        # todo: remove
-        assert best_feature_index != INVALID_FEATURE_INDEX
-
-        # todo: consider changing the order
         return best_feature_index, best_feature_mean_value

@@ -1,13 +1,11 @@
-from numpy import ndarray, log2
-
 from entropy_calculator import EntropyCalculator
-from utilities import FALSE_NEGATIVE_COST_FACTOR, NO_INFO_GAIN, select_sick_examples, are_equal_or_complement
+from utilities import FALSE_NEGATIVE_COST_FACTOR
 
 
 # todo: document - important
 class CostSensitiveEntropyCalculator(EntropyCalculator):
     """
-    an InfoGainCalculator implemented using entropy
+    an EntropyCalculator implementation with consideration to the loss function described in ex.4
     """
 
     @staticmethod

@@ -1,7 +1,6 @@
 from numpy import ndarray, round, array
 from numpy.linalg import norm
 from typing import Union
-from copy import deepcopy
 
 
 # global constants:
@@ -15,9 +14,9 @@ DEFAULT_MEAN_VALUE = 0
 FLOATING_POINT_ERROR_RANGE = 10 ** (-10)
 
 # for ex3:
-DEFAULT_WITHOUT_PRUNING = False
+WITHOUT_PRUNING = False
 DEFAULT_PRUNE_THRESHOLD = -1
-# M_VALUES_FOR_PRUNING = [2, 10, 30, 80, 160]  # consider using the half-series of 343 (170, 85, ...)
+# M_VALUES_FOR_PRUNING = [2, 3, 5, 10, 25, 50, 80, 120, 160]  # consider using the half-series of 343 (170, 85, ...)
 M_VALUES_FOR_PRUNING = [1, 2, 3, 5, 8, 16, 30, 50, 80, 120]
 DEFAULT_N_SPLIT = 5
 DEFAULT_SHUFFLE = True
@@ -26,10 +25,16 @@ ID_SEED = 123456789  # todo: make sure to update to mine when needed:
 # for ex4:
 FALSE_NEGATIVE_COST_FACTOR = 10  # used for calculating the loss function
 
-# for ex6:
-p = 0.3
-N = 343
-K = 13
+# experimentation params for ex6-7:
+NUM_TESTS = 5
+p_RANGE = (0.3, 0.7)
+N_RANGE = [10, 20, 30, 40, 50]
+K_FACTOR_RANGE = [1/4, 1/2, 3/4]
+
+# optimal ex6-7 params:
+OPTIMAL_p = 0.4
+OPTIMAL_N = 20
+OPTIMAL_K = 10
 
 
 # helper functions:
@@ -64,6 +69,13 @@ def classify_by_majority(examples: ndarray, sick_examples: ndarray) -> Union[SIC
 
 
 def classify_by_sick_ratio(sick_ratio: float):
+    """
+    determining the classification of the given sick_ratio
+
+    :param sick_ratio: the given sick_ratio, between 0.0 and 1.0
+
+    :return: SICK if sick ratio >= 0.5, HEALTHY otherwise
+    """
     if round(sick_ratio):
         return SICK  # if sick ratio >= 0.5
     else:
@@ -183,14 +195,11 @@ def get_errors_indexes(test_data: ndarray, test_results: list):
 
 
 def is_within_floating_point_error_range(value: float):
+    """
+    used mostly for debugging and assertion errors, determines whether the value given can be treated as 0
+
+    :param value: the value in question
+
+    :return: True if can be treated like 0, False otherwise
+    """
     return -FLOATING_POINT_ERROR_RANGE <= value <= FLOATING_POINT_ERROR_RANGE
-
-
-def utilities_test_zone():
-    test_examples = array([[1, 2, 3], [4, 5, 6], [9, 8, 7]])
-    cent = calc_centroid(test_examples)
-    print(cent)
-
-
-if __name__ == '__main__':
-    utilities_test_zone()

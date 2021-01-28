@@ -9,8 +9,6 @@ from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, SICK, HEALTHY, 
 class TDIDTree:
     """
     TDIDT - Top Down Induction Decision Tree
-
-    __init__ will recursively build a TDIDT tree using a given FeatureSelector
     """
     # binary-tree:
     left_subtree: Union['TDIDTree', None]
@@ -40,7 +38,7 @@ class TDIDTree:
         return not self.is_leaf
 
     @property
-    def leaf_count(self):
+    def leaf_count(self):  # mostly used for debugging
         if self.is_leaf:
             return 1
 
@@ -74,6 +72,11 @@ class TDIDTree:
                       default_classification: Union[SICK, HEALTHY]):
         """
         recursively builds the TDIDT for the given parameters
+
+        :param examples: the given examples
+        :param features_indexes: the indexes of the features we examine
+        :param select_feature_func: the function used to split the examples to left/right
+        :param default_classification: the default classification of the calling parent node
         """
         self.num_examples = len(examples)
 

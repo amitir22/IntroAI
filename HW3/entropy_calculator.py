@@ -73,6 +73,17 @@ class EntropyCalculator(InfoGainCalculator):
 
         return total_cost, entropy
 
+    def calc_probabilities(self, sick_cost: int, healthy_cost: int):
+        """
+        calculating probabilities of the given costs
+
+        :param sick_cost: s.e.
+        :param healthy_cost: s.e.
+
+        :return: sick_probability, healthy_probability (Tuple[float, float])
+        """
+        return self.calc_ratios(sick_cost, healthy_cost)
+
     @staticmethod
     def evaluate_entropy(probabilities: Tuple[float, float]):
         """
@@ -85,31 +96,22 @@ class EntropyCalculator(InfoGainCalculator):
         """
         cumulated_entropy = 0
 
-        # todo remove
-        assert sum(probabilities) == 1
-
         for probability in probabilities:
             if not is_within_floating_point_error_range(probability):
                 cumulated_entropy -= probability * log2(probability)
 
         return cumulated_entropy
 
-    # todo: document - important
-    @staticmethod
-    def calc_probabilities(sick_cost: int, healthy_cost: int):
-        total_cost = sick_cost + healthy_cost
-
-        sick_probability = sick_cost / total_cost
-        healthy_probability = healthy_cost / total_cost
-
-        # todo remove
-        assert sick_probability + healthy_probability == 1
-
-        return sick_probability, healthy_probability
-
-    # todo: document - important
     @staticmethod
     def calc_ratios(left_cost: int, right_cost: int):
+        """
+        calculating ratios of the given costs
+
+        :param left_cost: s.e. (self explanatory)
+        :param right_cost:  s.e
+
+        :return: left_ratio, right_ratio (both from total_cost) (Tuple[float, float])
+        """
         total_cost = left_cost + right_cost
         
         left_ratio = left_cost / total_cost
@@ -117,7 +119,6 @@ class EntropyCalculator(InfoGainCalculator):
 
         return left_ratio, right_ratio
 
-    # todo: document
     @staticmethod
     def calc_costs(num_sick_examples: int, num_healthy_examples: int):
         """
