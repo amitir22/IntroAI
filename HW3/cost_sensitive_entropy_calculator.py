@@ -2,7 +2,6 @@ from entropy_calculator import EntropyCalculator
 from utilities import FALSE_NEGATIVE_COST_FACTOR
 
 
-# todo: document - important
 class CostSensitiveEntropyCalculator(EntropyCalculator):
     """
     an EntropyCalculator implementation with consideration to the loss function described in ex.4

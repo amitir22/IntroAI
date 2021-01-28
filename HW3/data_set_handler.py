@@ -1,7 +1,6 @@
 from pandas import read_csv
 
 
-# todo: document
 class DataSetHandler:
     train_path: str
     test_path: str

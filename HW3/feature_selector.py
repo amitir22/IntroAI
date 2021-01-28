@@ -61,8 +61,6 @@ class ID3FeatureSelector(FeatureSelector):
 
                 current_info_gain = self.info_gain_calculator.calc_info_gain(examples, feature_index, mean_value)
 
-                assert current_info_gain >= -FLOATING_POINT_ERROR_RANGE
-
                 if (current_info_gain, feature_index) == (best_info_gain, best_feature_index):
                     continue  # because we're told to choose the minimal feature index
                 elif current_info_gain >= best_info_gain:

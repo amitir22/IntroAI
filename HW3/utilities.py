@@ -16,11 +16,10 @@ FLOATING_POINT_ERROR_RANGE = 10 ** (-10)
 # for ex3:
 WITHOUT_PRUNING = False
 DEFAULT_PRUNE_THRESHOLD = -1
-# M_VALUES_FOR_PRUNING = [2, 3, 5, 10, 25, 50, 80, 120, 160]  # consider using the half-series of 343 (170, 85, ...)
-M_VALUES_FOR_PRUNING = [1, 2, 3, 5, 8, 16, 30, 50, 80, 120]
+M_VALUES_FOR_PRUNING = [2, 3, 5, 10, 25, 50, 80, 120, 160]
 DEFAULT_N_SPLIT = 5
 DEFAULT_SHUFFLE = True
-ID_SEED = 123456789  # todo: make sure to update to mine when needed:
+ID_SEED = 315836569
 
 # for ex4:
 FALSE_NEGATIVE_COST_FACTOR = 10  # used for calculating the loss function

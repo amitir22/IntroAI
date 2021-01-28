@@ -5,7 +5,6 @@ from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, SICK, HEALTHY, 
     are_equal_or_complement, classify_by_majority
 
 
-# TODO:
 class TDIDTree:
     """
     TDIDT - Top Down Induction Decision Tree

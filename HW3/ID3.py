@@ -129,9 +129,6 @@ def ex3(data_handler: DataSetHandler):
         average_rate = sum_rates / DEFAULT_N_SPLIT
         m_prediction_rates.append(average_rate)
 
-        # todo remove
-        print(f'finished m={m}: average rate: {average_rate}')
-
     plot_m_results(m_values, m_prediction_rates)
 
 
@@ -153,7 +150,6 @@ def run_id3_with_pruning(train_data: DataFrame, test_data: DataFrame, prune_thre
     return test_results
 
 
-# todo: make sure only ex1 runs when executing ID3.py as a standalone script
 if __name__ == '__main__':
     data_set_handler = DataSetHandler()
     ex1(data_set_handler)
