@@ -10,8 +10,7 @@ from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
 from utilities import SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, \
-    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, STATUS_FEATURE_INDEX, calc_error_rate, \
-    classify_by_majority
+    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, INVALID_FEATURE_INDEX, calc_error_rate
 
 
 # todo: document all methods and functions in module
@@ -19,19 +18,14 @@ class ID3(LearningClassifierModel):
     """
     ID3 Model of TDIDT
     """
-    is_initialized: bool
+    is_trained: bool
+    select_feature_func: Callable[[ndarray, List[int]], Tuple[int, float]]
     decision_tree: TDIDTree
-    select_feature: Callable[[ndarray, List[int]], Tuple[int, float]]
-    is_with_pruning: bool
-    prune_threshold: int
-    default_classification_function: Callable[[ndarray, ndarray], Union[SICK, HEALTHY]]
 
     def __init__(self, feature_selector: ID3FeatureSelector,
                  is_with_pruning: bool = DEFAULT_WITHOUT_PRUNING, prune_threshold: int = DEFAULT_PRUNE_THRESHOLD):
-        self.select_feature = feature_selector.select_best_feature_for_split
-        self.is_with_pruning = is_with_pruning
-        self.prune_threshold = prune_threshold
-        self.default_classification_function = classify_by_majority
+        self.select_feature_func = feature_selector.select_best_feature_for_split
+        self.decision_tree = TDIDTree(is_with_pruning=is_with_pruning, prune_threshold=prune_threshold)
 
     def train(self, dataset: DataFrame):
         examples = dataset.to_numpy()
@@ -41,27 +35,26 @@ class ID3(LearningClassifierModel):
 
         features_indexes = list(range(first_column_index, last_column_index))
 
-        self.decision_tree = TDIDTree(examples=examples, features_indexes=features_indexes,
-                                      select_feature_func=self.select_feature, default_classification=SICK,
-                                      is_with_pruning=self.is_with_pruning, prune_threshold=self.prune_threshold,
-                                      default_classification_function=self.default_classification_function,
-                                      excluded_feature_index=STATUS_FEATURE_INDEX)
-        self.is_initialized = True
+        self.decision_tree.generate_tree(examples=examples, features_indexes=features_indexes,
+                                         select_feature_func=self.select_feature_func,
+                                         default_classification=SICK, excluded_feature_index=INVALID_FEATURE_INDEX)
+
+        self.is_trained = True
 
     def test(self, dataset: DataFrame):
         examples = dataset.to_numpy()
 
-        if self.is_initialized:
+        if self.is_trained:
             return self.decision_tree.classify(examples)
         else:
-            raise NotImplementedError('object of type ID3 is not initialized')
+            raise NotImplementedError('forgot to train the model: ID3. use method train()')
 
 
 def ex1(data_handler: DataSetHandler):
     # dependency injection
     info_gain_calculator = EntropyCalculator()
     id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
-    id3 = ID3(id3_feature_selector)
+    id3 = ID3(id3_feature_selector, False, -1)  # todo: change
 
     train_data, test_data = data_handler.read_both_data()
 
@@ -69,15 +62,11 @@ def ex1(data_handler: DataSetHandler):
 
     test_results = id3.test(test_data)
 
-    print_ex1_test_result(test_data.to_numpy(), test_results)
+    numpy_test_data = test_data.to_numpy()
 
-
-def print_ex1_test_result(test_data: ndarray, test_results: list):
-    error_rate = calc_error_rate(test_data, test_results)
+    error_rate = calc_error_rate(numpy_test_data, test_results)
     prediction_rate = 1 - error_rate
 
-    # todo: don't forget to eliminate all the text
-    # print(f'prediction rate: {prediction_rate}')
     print(prediction_rate)
 
 
@@ -120,7 +109,7 @@ def experiment(data_handler: DataSetHandler):
         m_prediction_rates.append(average_rate)
 
         # todo remove
-        print(f'finished m={m}')
+        print(f'finished m={m}: average rate: {average_rate}')
 
     plot_m_results(m_values, m_prediction_rates)
 

@@ -1,7 +1,7 @@
 from numpy import ndarray, log2
 
 from entropy_calculator import EntropyCalculator
-from utilities import FALSE_POSITIVE_COST_FACTOR, DEFAULT_INFO_GAIN, select_sick_examples, are_equal_or_complement
+from utilities import FALSE_NEGATIVE_COST_FACTOR, NO_INFO_GAIN, select_sick_examples, are_equal_or_complement
 
 
 # todo: document - important
@@ -27,7 +27,7 @@ class CostSensitiveEntropyCalculator(EntropyCalculator):
                  (2): the sick cost
                  (3): the healthy cost
         """
-        sick_cost = num_sick_examples * FALSE_POSITIVE_COST_FACTOR
+        sick_cost = num_sick_examples * FALSE_NEGATIVE_COST_FACTOR
         healthy_cost = num_healthy_examples
 
         total_cost = sick_cost + healthy_cost

@@ -2,7 +2,7 @@ from typing import List, Tuple
 from numpy import ndarray, argsort
 from abc import ABC
 
-from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, DEFAULT_INFO_GAIN, FLOATING_POINT_ERROR_RANGE
+from utilities import INVALID_FEATURE_INDEX, DEFAULT_MEAN_VALUE, NO_INFO_GAIN, FLOATING_POINT_ERROR_RANGE
 from info_gain_calculator import InfoGainCalculator
 
 
@@ -41,7 +41,7 @@ class ID3FeatureSelector(FeatureSelector):
                  (2): the best mean value to split by
         """
         best_feature_index = INVALID_FEATURE_INDEX
-        best_info_gain = DEFAULT_INFO_GAIN
+        best_info_gain = NO_INFO_GAIN
         best_feature_mean_value = DEFAULT_MEAN_VALUE
 
         for feature_index in features_indexes:
@@ -63,7 +63,8 @@ class ID3FeatureSelector(FeatureSelector):
 
                 assert current_info_gain >= -FLOATING_POINT_ERROR_RANGE
 
-                if (current_info_gain, feature_index) == (best_info_gain, best_feature_index):
+                # todo: what? make sure if can simplify
+                if current_info_gain == best_info_gain and feature_index == best_feature_index:
                     continue  # because we're told to choose the minimal feature index
                 elif current_info_gain >= best_info_gain:
                     best_feature_mean_value = mean_value
@@ -72,7 +73,6 @@ class ID3FeatureSelector(FeatureSelector):
 
         # todo: remove
         assert best_feature_index != INVALID_FEATURE_INDEX
-        assert best_feature_mean_value != DEFAULT_MEAN_VALUE
 
         # todo: consider changing the order
         return best_feature_index, best_feature_mean_value

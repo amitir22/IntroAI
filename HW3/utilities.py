@@ -10,7 +10,7 @@ HEALTHY = 'B'
 STATUS_FEATURE_INDEX = 0
 FIRST_NON_STATUS_FEATURE_INDEX = 1
 INVALID_FEATURE_INDEX = -1
-DEFAULT_INFO_GAIN = 0
+NO_INFO_GAIN = 0
 DEFAULT_MEAN_VALUE = 0
 FLOATING_POINT_ERROR_RANGE = 10 ** (-10)
 
@@ -19,13 +19,13 @@ DEFAULT_WITHOUT_PRUNING = False
 DEFAULT_PRUNE_THRESHOLD = -1
 # M_VALUES_FOR_PRUNING = [2, 10, 30, 80, 160]  # consider using the half-series of 343 (170, 85, ...)
 M_VALUES_FOR_PRUNING = [1, 2, 3, 5, 8, 16, 30, 50, 80, 120]
-DEFAULT_N_SPLIT = len(M_VALUES_FOR_PRUNING)
+DEFAULT_N_SPLIT = 5
 DEFAULT_SHUFFLE = True
 ID_SEED = 123456789  # todo: make sure to update to mine when needed:
 
 # for ex4:
 # todo: make sure to set the factor
-FALSE_POSITIVE_COST_FACTOR = 10  # used for calculating the loss function
+FALSE_NEGATIVE_COST_FACTOR = 10  # used for calculating the loss function
 
 
 # helper functions:
@@ -119,6 +119,9 @@ def calc_error_rate(test_data: ndarray, test_results: list):
     """
     total_count = len(test_data)
 
+    # todo remove
+    status_column = test_data[:, STATUS_FEATURE_INDEX].tolist()
+
     errors_indexes = get_errors_indexes(test_data, test_results)
     error_count = len(errors_indexes)
 
@@ -145,11 +148,11 @@ def calc_loss(test_data: ndarray, test_results: list):
 
     for error_index in errors_indexes:
         if test_data[error_index, STATUS_FEATURE_INDEX] is SICK:
-            # means we predicted a patient as healthy while he was sick
-            false_negative_cost += 1
+            # means we predicted a patient as healthy while he was sick (worse than false-positive)
+            false_negative_cost += FALSE_NEGATIVE_COST_FACTOR
         else:
             # means we predicted a patient as sick while he was healthy
-            false_positive_cost += (1 / FALSE_POSITIVE_COST_FACTOR)
+            false_positive_cost += 1
 
     total_cost = false_negative_cost + false_positive_cost
 
@@ -172,6 +175,10 @@ def get_errors_indexes(test_data: ndarray, test_results: list):
 
     return [row_index for row_index in range(total_count)
             if test_results[row_index] != test_data[row_index, STATUS_FEATURE_INDEX]]
+
+
+def is_within_floating_point_error_range(value: float):
+    return -FLOATING_POINT_ERROR_RANGE <= value <= FLOATING_POINT_ERROR_RANGE
 
 
 def utilities_test_zone():

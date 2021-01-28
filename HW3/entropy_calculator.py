@@ -2,7 +2,8 @@ from numpy import ndarray, log2
 from typing import Tuple
 
 from info_gain_calculator import InfoGainCalculator
-from utilities import DEFAULT_INFO_GAIN, are_equal_or_complement, select_sick_examples
+from utilities import NO_INFO_GAIN, are_equal_or_complement, select_sick_examples, \
+    is_within_floating_point_error_range
 
 
 class EntropyCalculator(InfoGainCalculator):
@@ -26,34 +27,17 @@ class EntropyCalculator(InfoGainCalculator):
         num_left_examples = len(left_examples)
 
         if are_equal_or_complement(num_examples, num_left_examples):  # here to save some calculation time
-            return DEFAULT_INFO_GAIN
+            return NO_INFO_GAIN
 
         right_examples = examples[examples[:, feature_index] >= mean_feature_value]
         num_right_examples = len(right_examples)
 
-        num_sick, num_left_sick, num_right_sick = self.get_num_sick_examples(examples, left_examples, right_examples)
-
-        # evaluating the healthy parts sizes
-        num_healthy = num_examples - num_sick
-        num_left_healthy = num_left_examples - num_left_sick
-        num_right_healthy = num_right_examples - num_right_sick
-
-        # calculating costs
-        current_total_cost, current_sick_cost, current_healthy_cost = self.calc_costs(num_sick, num_healthy)
-        left_total_cost, left_sick_cost, left_healthy_cost = self.calc_costs(num_left_sick, num_left_healthy)
-        right_total_cost, right_sick_cost, right_healthy_cost = self.calc_costs(num_right_sick, num_right_healthy)
-
-        # calculation probabilities
-        current_probabilities = self.calc_probabilities(current_sick_cost, current_healthy_cost)
-        left_probabilities = self.calc_probabilities(left_sick_cost, left_healthy_cost)
-        right_probabilities = self.calc_probabilities(right_sick_cost, right_healthy_cost)
-
         # calculating entropy
-        current_entropy = self.calc_entropy(current_probabilities)
-        left_entropy = self.calc_entropy(left_probabilities)
-        right_entropy = self.calc_entropy(right_probabilities)
+        total_cost, current_entropy = self.calc_cost_entropy(examples)
+        left_cost, left_entropy = self.calc_cost_entropy(left_examples)
+        right_cost, right_entropy = self.calc_cost_entropy(right_examples)
 
-        left_ratio, right_ratio = self.calc_ratios(left_total_cost, right_total_cost)
+        left_ratio, right_ratio = self.calc_ratios(left_cost, right_cost)
 
         # the heart of this calculator:
         info_gain = current_entropy - (left_ratio * left_entropy + right_ratio * right_entropy)
@@ -62,10 +46,37 @@ class EntropyCalculator(InfoGainCalculator):
 
     # helper functions:
 
-    @staticmethod
-    def calc_entropy(probabilities: Tuple[float, float]):
+    def calc_cost_entropy(self, examples: ndarray):
         """
-        calculating the entropy of the given probabilities
+        calculating the entropy of the given examples with regards to costs
+
+        :param examples: the given examples
+
+        :return: tuple((1), (2)):
+                 (1): the total cost
+                 (2): the entropy of the group of examples (float)
+        """
+        sick_examples = select_sick_examples(examples)
+
+        num_examples = len(examples)
+        num_sick_examples = len(sick_examples)
+        num_healthy_examples = num_examples - num_sick_examples
+
+        total_cost, sick_cost, healthy_cost = self.calc_costs(num_sick_examples, num_healthy_examples)
+
+        if are_equal_or_complement(num_examples, num_sick_examples):
+            return total_cost, NO_INFO_GAIN
+
+        probabilities = self.calc_probabilities(sick_cost, healthy_cost)
+
+        entropy = self.evaluate_entropy(probabilities)
+
+        return total_cost, entropy
+
+    @staticmethod
+    def evaluate_entropy(probabilities: Tuple[float, float]):
+        """
+        evaluating the entropy of the given probabilities
         usual usage is probabilities=[probability_sick, probability_healthy]
 
         :param probabilities: the probabilities
@@ -74,26 +85,14 @@ class EntropyCalculator(InfoGainCalculator):
         """
         cumulated_entropy = 0
 
+        # todo remove
         assert sum(probabilities) == 1
 
         for probability in probabilities:
-            if probability != 0:
+            if not is_within_floating_point_error_range(probability):
                 cumulated_entropy -= probability * log2(probability)
 
         return cumulated_entropy
-
-    # todo: document - important
-    @staticmethod
-    def get_num_sick_examples(examples: ndarray, left_examples: ndarray, right_examples: ndarray):
-        sick_examples = select_sick_examples(examples)
-        left_sick_examples = select_sick_examples(left_examples)
-        right_sick_examples = select_sick_examples(right_examples)
-
-        num_sick = len(sick_examples)
-        num_left_sick = len(left_sick_examples)
-        num_right_sick = len(right_sick_examples)
-
-        return num_sick, num_left_sick, num_right_sick
 
     # todo: document - important
     @staticmethod
@@ -103,17 +102,18 @@ class EntropyCalculator(InfoGainCalculator):
         sick_probability = sick_cost / total_cost
         healthy_probability = healthy_cost / total_cost
 
+        # todo remove
         assert sick_probability + healthy_probability == 1
 
         return sick_probability, healthy_probability
 
     # todo: document - important
     @staticmethod
-    def calc_ratios(num_left_examples: int, num_right_examples: int):
-        num_examples = num_left_examples + num_right_examples
+    def calc_ratios(left_cost: int, right_cost: int):
+        total_cost = left_cost + right_cost
         
-        left_ratio = num_left_examples / num_examples
-        right_ratio = num_right_examples / num_examples
+        left_ratio = left_cost / total_cost
+        right_ratio = right_cost / total_cost
 
         return left_ratio, right_ratio
 
@@ -122,7 +122,7 @@ class EntropyCalculator(InfoGainCalculator):
     def calc_costs(num_sick_examples: int, num_healthy_examples: int):
         """
         a simple implementation mainly used to be overridden in ex.4
-        assuming each example's cost is 1
+        assuming each example's cost is equal to each other and to 1
 
         :param num_sick_examples: the number of sick examples
         :param num_healthy_examples: the number of healthy examples
