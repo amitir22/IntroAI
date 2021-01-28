@@ -91,6 +91,7 @@ def ex1(data_handler: DataSetHandler):
     print(prediction_rate)
 
 
+# here is the implementation of the ex3: (the next 3 functions)
 def ex3(data_handler: DataSetHandler):
     """
     instructions: create an object of type DataSetHandler with the path to the test data and the train data and pass
