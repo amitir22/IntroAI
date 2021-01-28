@@ -68,7 +68,7 @@ def main():
     ex1(data_handler)
     ex3(data_handler)
     ex4(data_handler)
-    # ex6(data_handler)
+    ex6(data_handler)
 
 
 if __name__ == '__main__':

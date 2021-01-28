@@ -9,8 +9,8 @@ from tdidt import TDIDTree
 from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
-from utilities import SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, \
-    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, INVALID_FEATURE_INDEX, calc_error_rate
+from utilities import SICK, DEFAULT_PRUNE_THRESHOLD, FIRST_NON_STATUS_FEATURE_INDEX, DEFAULT_N_SPLIT, \
+    DEFAULT_SHUFFLE, ID_SEED, M_VALUES_FOR_PRUNING, DEFAULT_WITHOUT_PRUNING, calc_error_rate
 
 
 # todo: document all methods and functions in module
@@ -37,7 +37,7 @@ class ID3(LearningClassifierModel):
 
         self.decision_tree.generate_tree(examples=examples, features_indexes=features_indexes,
                                          select_feature_func=self.select_feature_func,
-                                         default_classification=SICK, excluded_feature_index=INVALID_FEATURE_INDEX)
+                                         default_classification=SICK)
 
         self.is_trained = True
 

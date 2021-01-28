@@ -24,8 +24,12 @@ DEFAULT_SHUFFLE = True
 ID_SEED = 123456789  # todo: make sure to update to mine when needed:
 
 # for ex4:
-# todo: make sure to set the factor
 FALSE_NEGATIVE_COST_FACTOR = 10  # used for calculating the loss function
+
+# for ex6:
+p = 0.3
+N = 343
+K = 13
 
 
 # helper functions:
@@ -56,6 +60,10 @@ def classify_by_majority(examples: ndarray, sick_examples: ndarray) -> Union[SIC
 
     sick_ratio = num_sick_examples / num_examples
 
+    return classify_by_sick_ratio(sick_ratio)
+
+
+def classify_by_sick_ratio(sick_ratio: float):
     if round(sick_ratio):
         return SICK  # if sick ratio >= 0.5
     else:
@@ -118,9 +126,6 @@ def calc_error_rate(test_data: ndarray, test_results: list):
     :return: the error-rate (float)
     """
     total_count = len(test_data)
-
-    # todo remove
-    status_column = test_data[:, STATUS_FEATURE_INDEX].tolist()
 
     errors_indexes = get_errors_indexes(test_data, test_results)
     error_count = len(errors_indexes)

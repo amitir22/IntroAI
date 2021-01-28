@@ -10,8 +10,8 @@ from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
 from utilities import ID_SEED, FIRST_NON_STATUS_FEATURE_INDEX, SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, \
-    DEFAULT_WITHOUT_PRUNING, STATUS_FEATURE_INDEX, calc_centroid, calc_examples_dist, classify_by_majority, \
-    calc_error_rate
+    DEFAULT_WITHOUT_PRUNING, K, N, p, calc_centroid, calc_examples_dist, calc_error_rate, \
+    classify_by_sick_ratio
 
 
 # todo: and document
@@ -24,23 +24,21 @@ class KNNForest(LearningClassifierModel):
     # todo: leave new-lines? document?
     is_with_pruning: bool
     prune_threshold: int
-    default_classification_function: Callable[[ndarray, ndarray], Union[SICK, HEALTHY]]
-    select_feature: Callable[[ndarray, List[int]], Tuple[int, float]]
+    select_feature_func: Callable[[ndarray, List[int]], Tuple[int, float]]
 
-    def __init__(self, p: float, N: int, K: int, feature_selector: ID3FeatureSelector,
-                 is_with_pruning: bool = DEFAULT_WITHOUT_PRUNING, prune_threshold: int = DEFAULT_PRUNE_THRESHOLD):
-        self.tree_population_ratio_to_id3 = p
-        self.num_trees = N
-        self.num_trees_to_test = K
+    def __init__(self, p_param: float, N_param: int, K_param: int, feature_selector: ID3FeatureSelector,
+                 is_with_pruning: bool, prune_threshold: int):
+        self.tree_population_ratio_to_id3 = p_param
+        self.num_trees = N_param
+        self.num_trees_to_test = K_param
 
         self.is_with_pruning = is_with_pruning
         self.prune_threshold = prune_threshold
-        self.select_feature = feature_selector.select_best_feature_for_split
-        self.default_classification_function = classify_by_majority
+        self.select_feature_func = feature_selector.select_best_feature_for_split
         self.forest = {}
 
         # TODO: remove?
-        assert 0.3 <= p <= 0.7
+        assert 0.3 <= p_param <= 0.7
 
         seed(ID_SEED)  # here to get consistent results
 
@@ -60,26 +58,25 @@ class KNNForest(LearningClassifierModel):
         for random_examples in self.get_random_examples(examples, tree_population_size):
             centroid_tuple = calc_centroid(random_examples)
 
-            self.forest[centroid_tuple] = TDIDTree(examples=random_examples, features_indexes=features_indexes,
-                                                   select_feature_func=self.select_feature, default_classification=SICK,
-                                                   is_with_pruning=self.is_with_pruning,
-                                                   prune_threshold=self.prune_threshold,
-                                                   default_classification_function=self.default_classification_function,
-                                                   excluded_feature_index=STATUS_FEATURE_INDEX)
+            self.forest[centroid_tuple] = TDIDTree(is_with_pruning=self.is_with_pruning,
+                                                   prune_threshold=self.prune_threshold)
+            self.forest[centroid_tuple].generate_tree(examples=random_examples, features_indexes=features_indexes,
+                                                      select_feature_func=self.select_feature_func,
+                                                      default_classification=SICK)
 
     def test(self, dataset: DataFrame):
         examples = dataset.to_numpy()
         results = []
 
         for example in examples:
-            example_result = self.test_single(example, len(examples))
+            example_result = self.test_single(example)
 
             results.append(example_result)
 
         return results
 
     # helper methods:
-    def test_single(self, example: ndarray, num_examples: int):
+    def test_single(self, example: ndarray):
         flat_example = example.flatten()
 
         distances, centroids_tuples = self.calc_distances_from_centroids(flat_example)
@@ -88,13 +85,9 @@ class KNNForest(LearningClassifierModel):
 
         tree_results = self.get_tree_results(sorted_tree_indexes, centroids_tuples, flat_example)
 
-        tree_sick_ratio = self.calc_tree_sick_ratio(num_examples, tree_results)
+        tree_sick_ratio = self.calc_tree_sick_ratio(tree_results)
 
-        # classification by majority of results
-        if round(tree_sick_ratio):
-            return SICK  # if sick ratio >= 0.5
-        else:
-            return HEALTHY  # if sick ratio < 0.5
+        return classify_by_sick_ratio(tree_sick_ratio)
 
     def calc_distances_from_centroids(self, flat_example: array):
         distances = []
@@ -135,7 +128,8 @@ class KNNForest(LearningClassifierModel):
             yield sliced
 
     @staticmethod
-    def calc_tree_sick_ratio(num_tree_results: int, tree_results: List[Union[SICK, HEALTHY]]):
+    def calc_tree_sick_ratio(tree_results: List[Union[SICK, HEALTHY]]):
+        num_tree_results = len(tree_results)
         num_sick_tree_results = len([tree_result for tree_result in tree_results
                                      if tree_result is SICK])
 
@@ -144,12 +138,13 @@ class KNNForest(LearningClassifierModel):
         return tree_sick_ratio
 
 
-def run_knn_forest_with_parameters(data_handler: DataSetHandler, p: float, N: int, K: int):
+def run_knn_forest_with_parameters(data_handler: DataSetHandler, p_param: float, N_param: int, K_param: int):
     # dependency injection
     info_gain_calculator = EntropyCalculator()
     id3_feature_selector = ID3FeatureSelector(info_gain_calculator)
 
-    knn_forest = KNNForest(p, N, K, id3_feature_selector)
+    knn_forest = KNNForest(p_param, N_param, K_param, id3_feature_selector, DEFAULT_WITHOUT_PRUNING,
+                           DEFAULT_PRUNE_THRESHOLD)
 
     train_data, test_data = data_handler.read_both_data()
 
@@ -165,11 +160,11 @@ def run_knn_forest_with_parameters(data_handler: DataSetHandler, p: float, N: in
     print(prediction_rate)
 
 
-def ex6(data_handler: DataSetHandler):
-    p = 0.7
-    N = 5
-    K = 2
+def run_experiments_on_knn_forest():
+    pass
 
+
+def ex6(data_handler: DataSetHandler):
     run_knn_forest_with_parameters(data_handler, p, N, K)
 
 

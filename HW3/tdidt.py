@@ -71,7 +71,7 @@ class TDIDTree:
 
     def generate_tree(self, examples: ndarray, features_indexes: List[int],
                       select_feature_func: Callable[[ndarray, List[int]], Tuple[int, float]],
-                      default_classification: Union[SICK, HEALTHY], excluded_feature_index: int):
+                      default_classification: Union[SICK, HEALTHY]):
         """
         recursively builds the TDIDT for the given parameters
         """
@@ -100,15 +100,7 @@ class TDIDTree:
             select_best_feature = select_feature_func
             did_exclude_feature = False
 
-            # making sure the same feature isn't selected twice in a row
-            # if excluded_feature_index in features_indexes:
-            #     features_indexes.remove(excluded_feature_index)
-            #     did_exclude_feature = True
-
             self.feature_index, self.feature_split_value = select_best_feature(examples, features_indexes)
-
-            if did_exclude_feature:
-                features_indexes.append(excluded_feature_index)
 
             left_examples = examples[examples[:, self.feature_index] < self.feature_split_value]
             right_examples = examples[examples[:, self.feature_index] >= self.feature_split_value]
@@ -118,12 +110,10 @@ class TDIDTree:
 
             self.left_subtree.generate_tree(examples=left_examples, features_indexes=features_indexes,
                                             select_feature_func=select_feature_func,
-                                            default_classification=self.assigned_class,
-                                            excluded_feature_index=self.feature_index)
+                                            default_classification=self.assigned_class)
             self.right_subtree.generate_tree(examples=right_examples, features_indexes=features_indexes,
                                              select_feature_func=select_feature_func,
-                                             default_classification=self.assigned_class,
-                                             excluded_feature_index=self.feature_index)
+                                             default_classification=self.assigned_class)
 
     def classify(self, examples: ndarray):
         """
