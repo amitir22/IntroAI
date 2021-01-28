@@ -1,7 +1,7 @@
 from typing import List, Dict, Callable, Tuple, Union
 from pandas import DataFrame
 from numpy import ndarray, array, round, argsort, asarray, linspace
-from numpy.random import seed, shuffle
+from numpy.random import shuffle
 from copy import deepcopy
 
 from learning_classifier_model import LearningClassifierModel
@@ -9,7 +9,7 @@ from tdidt import TDIDTree
 from feature_selector import ID3FeatureSelector
 from entropy_calculator import EntropyCalculator
 from data_set_handler import DataSetHandler
-from utilities import ID_SEED, FIRST_NON_STATUS_FEATURE_INDEX, SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, \
+from utilities import FIRST_NON_STATUS_FEATURE_INDEX, SICK, HEALTHY, DEFAULT_PRUNE_THRESHOLD, \
     WITHOUT_PRUNING, NUM_TESTS, K_FACTOR_RANGE, N_RANGE, p_RANGE, OPTIMAL_K, OPTIMAL_N, OPTIMAL_p, calc_centroid, \
     calc_examples_dist, calc_error_rate, classify_by_sick_ratio
 
@@ -37,8 +37,6 @@ class KNNForest(LearningClassifierModel):
         self.prune_threshold = prune_threshold
         self.select_feature_func = feature_selector.select_best_feature_for_split
         self.forest = {}
-
-        seed(ID_SEED)  # here to get consistent results
 
     def train(self, dataset: DataFrame):
         """
